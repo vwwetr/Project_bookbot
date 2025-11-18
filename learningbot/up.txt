@@ -1,0 +1,56 @@
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.5.7)
+
+2025-11-18T20:56:31.210+03:00  INFO 45554 --- [           main] com.learningbot.LearningBotApplication   : Starting LearningBotApplication using Java 25 with PID 45554 (/Users/vwwetr/Documents/SysOps_learning/Project_bookbot/learningbot (public server)/target/learningbot-1.0.0.jar started by vwwetr in /Users/vwwetr/Documents/SysOps_learning/Project_bookbot/learningbot (public server))
+2025-11-18T20:56:31.211+03:00 DEBUG 45554 --- [           main] com.learningbot.LearningBotApplication   : Running with Spring Boot v3.5.7, Spring v6.2.12
+2025-11-18T20:56:31.212+03:00  INFO 45554 --- [           main] com.learningbot.LearningBotApplication   : No active profile set, falling back to 1 default profile: "default"
+2025-11-18T20:56:31.899+03:00  INFO 45554 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2025-11-18T20:56:31.907+03:00  INFO 45554 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-11-18T20:56:31.908+03:00  INFO 45554 --- [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.48]
+2025-11-18T20:56:31.927+03:00  INFO 45554 --- [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-11-18T20:56:31.927+03:00  INFO 45554 --- [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 691 ms
+2025-11-18T20:56:32.100+03:00  WARN 45554 --- [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'telegramBotsApi' defined in class path resource [com/learningbot/config/TelegramBotConfig.class]: Failed to instantiate [org.telegram.telegrambots.meta.TelegramBotsApi]: Factory method 'telegramBotsApi' threw exception with message: 'com.fasterxml.jackson.annotation.OptBoolean com.fasterxml.jackson.annotation.JsonProperty.isRequired()'
+2025-11-18T20:56:32.102+03:00  INFO 45554 --- [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2025-11-18T20:56:32.113+03:00  INFO 45554 --- [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2025-11-18T20:56:32.124+03:00 ERROR 45554 --- [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+An attempt was made to call a method that does not exist. The attempt was made from the following location:
+
+    com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector.hasRequiredMarker(JacksonAnnotationIntrospector.java:466)
+
+The following method did not exist:
+
+    'com.fasterxml.jackson.annotation.OptBoolean com.fasterxml.jackson.annotation.JsonProperty.isRequired()'
+
+The calling method's class, com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector, was loaded from the following location:
+
+    jar:nested:/Users/vwwetr/Documents/SysOps_learning/Project_bookbot/learningbot%20(public%20server)/target/learningbot-1.0.0.jar/!BOOT-INF/lib/jackson-databind-2.19.2.jar!/com/fasterxml/jackson/databind/introspect/JacksonAnnotationIntrospector.class
+
+The called method's class, com.fasterxml.jackson.annotation.JsonProperty, is available from the following locations:
+
+    jar:nested:/Users/vwwetr/Documents/SysOps_learning/Project_bookbot/learningbot%20(public%20server)/target/learningbot-1.0.0.jar/!BOOT-INF/lib/jackson-annotations-2.14.2.jar!/com/fasterxml/jackson/annotation/JsonProperty.class
+
+The called method's class hierarchy was loaded from the following locations:
+
+    com.fasterxml.jackson.annotation.JsonProperty: jar:nested:/Users/vwwetr/Documents/SysOps_learning/Project_bookbot/learningbot%20(public%20server)/target/learningbot-1.0.0.jar/!BOOT-INF/lib/jackson-annotations-2.14.2.jar!/
+
+
+Action:
+
+Correct the classpath of your application so that it contains compatible versions of the classes com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector and com.fasterxml.jackson.annotation.JsonProperty
+

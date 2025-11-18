@@ -1,0 +1,9 @@
+/Users/vwwetr/Documents/SysOps_learning/Project_bookbot/learningbot (public server)/src/main/java/com/learningbot/LearningBotApplication.java
+/Users/vwwetr/Documents/SysOps_learning/Project_bookbot/learningbot (public server)/src/main/java/com/learningbot/config/TelegramBotConfig.java
+/Users/vwwetr/Documents/SysOps_learning/Project_bookbot/learningbot (public server)/src/main/java/com/learningbot/controller/HealthController.java
+/Users/vwwetr/Documents/SysOps_learning/Project_bookbot/learningbot (public server)/src/main/java/com/learningbot/domain/Resource.java
+/Users/vwwetr/Documents/SysOps_learning/Project_bookbot/learningbot (public server)/src/main/java/com/learningbot/dto/ResourceRequestDto.java
+/Users/vwwetr/Documents/SysOps_learning/Project_bookbot/learningbot (public server)/src/main/java/com/learningbot/dto/ResourceResponseDto.java
+/Users/vwwetr/Documents/SysOps_learning/Project_bookbot/learningbot (public server)/src/main/java/com/learningbot/repository/ResourceRepository.java
+/Users/vwwetr/Documents/SysOps_learning/Project_bookbot/learningbot (public server)/src/main/java/com/learningbot/service/ResourceService.java
+/Users/vwwetr/Documents/SysOps_learning/Project_bookbot/learningbot (public server)/src/main/java/com/learningbot/telegram/LearningBot.java

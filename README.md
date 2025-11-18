@@ -23,7 +23,12 @@ sudo systemctl enable --now cockpit.socket # Установка и немедл�
 sudo firewall-cmd --reload
 #SSH - есть у vagrant при взаимодейтсвии с localhost, нужно будет прокидывать 
 ```
-## Writing Nginxtech playbook
+## Starting bot on localhost with ngrook webhook
 ```sh
-
+brew install --cask ngrok
+ngrok --hlep
+ngrok --help
+ngrok config add-authtoken 35exoQkB4zTzsTyXGo7Q6aSMfiy_7GsNeSJZZaowKf2Ub1yTQ
+mvn clean package -DskipTests
+java -jar target/learningbot-1.0.0.jar
  ```
