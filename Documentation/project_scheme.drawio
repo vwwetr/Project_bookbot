@@ -1,6 +1,6 @@
-<mxfile host="Electron" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/28.2.8 Chrome/140.0.7339.240 Electron/38.4.0 Safari/537.36" version="28.2.8">
-  <diagram name="Page-1" id="ZpGOQEVKVNA0ghb57mVW">
-    <mxGraphModel dx="2144" dy="754" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+<mxfile host="Electron" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/28.2.8 Chrome/140.0.7339.240 Electron/38.4.0 Safari/537.36" version="28.2.8" pages="2">
+  <diagram name="Cluster scheme" id="ZpGOQEVKVNA0ghb57mVW">
+    <mxGraphModel dx="2291" dy="827" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -272,6 +272,47 @@
         </mxCell>
         <mxCell id="rxmFSUgeUSgKB7-xWEUI-16" value="Telegram-bot&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="verticalLabelPosition=bottom;verticalAlign=top;html=1;shape=mxgraph.basic.smiley" parent="1" vertex="1">
           <mxGeometry x="647" y="510" width="260" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="kiYP-ZSzkKLJ5z3ouGvI-1" value="pg_dump" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="910" y="1000" width="110" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="kiYP-ZSzkKLJ5z3ouGvI-2" value="pg_restore" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="910" y="1030" width="110" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="TL_Djx1T3vG-fspi3fid-1" value="JavaKeyStore (TLS)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="610" y="1400" width="120" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="EZQt4YbHKnDEqKmwj0FZ" name="Database block scheme">
+    <mxGraphModel dx="976" dy="551" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="DXWz1jcTU_hN1UjBayFQ-1" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="370" y="260" width="560" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="DXWz1jcTU_hN1UjBayFQ-2" value="db" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" parent="1" vertex="1">
+          <mxGeometry x="500" y="290" width="60" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="DXWz1jcTU_hN1UjBayFQ-3" value="FluentD" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="570" y="310" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="DXWz1jcTU_hN1UjBayFQ-4" value="Zabbix Agent" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="690" y="310" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="DXWz1jcTU_hN1UjBayFQ-5" value="Centos" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="400" y="290" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="DXWz1jcTU_hN1UjBayFQ-6" value="pg_dump" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="810" y="310" width="110" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="DXWz1jcTU_hN1UjBayFQ-7" value="pg_restore" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="810" y="340" width="110" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="DXWz1jcTU_hN1UjBayFQ-8" value="DB user: postgres" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" parent="1" vertex="1">
+          <mxGeometry x="615" y="160" width="30" height="60" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

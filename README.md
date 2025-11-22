@@ -1,6 +1,8 @@
 # Project_bookbot
 Telegram learning JSB bot pet project.
 
+- В самом конце расписать здесь структуру проекта и навигацию по ней.
+
 ## 📘 Java
 ```sh
 brew install maven 
@@ -23,3 +25,23 @@ sudo systemctl enable --now cockpit.socket # Установка и немедл�
 sudo firewall-cmd --reload
 #SSH - есть у vagrant при взаимодейтсвии с localhost, нужно будет прокидывать 
 ```
+## Ansible
+### Roles:
+- database
+- ZabbixAgent
+- FluentD
+- Nginx
+- OpenSearch
+- K8s
+- FluentBit
+### Users
+- postgres (для SQL)
+    - Postgres roles:
+        - postgres (для SQL)
+        - app_user (для JSB)
+        - metric_user (Для Zabbix и Prometheus)
+- app_user (для JSB)
+- metric_user (Для Zabbix и Prometheus)
+
+## TLS через JKS
+

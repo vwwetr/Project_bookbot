@@ -1,0 +1,23 @@
+---
+- name: PostgreSQL CentOS Check; If "have not"
+  hosts: database
+  become: true
+
+- name: Create directory for SQL scripts
+  file:
+    path: /opt/postgresql/sql
+    state: directory
+    owner: postgres
+    group: postgres
+    mode: '0750'
+- copy:
+    src: {{source_dir}}
+    dest: {{destination_dir}}
+# vars:
+
+# PostgreSQL Centos Install
+# PostgreSQL Centos Run
+# PotstgreSQL Create database
+# PostgreSQL create roles
+# PostgreSQL create roles
+

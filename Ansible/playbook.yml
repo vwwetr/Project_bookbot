@@ -1,0 +1,13 @@
+###########
+# Bookboot #
+###########
+---
+- name: ""
+  hosts: cloudru
+  become: true
+
+  vars_files: vault/vars.yml
+
+  roles:
+    - users
+    - databse

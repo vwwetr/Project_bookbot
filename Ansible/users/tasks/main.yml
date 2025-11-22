@@ -1,0 +1,22 @@
+---
+- name: "Create 'Service' host user for all services"
+  ansible.builtin.user:
+    name: "{{ service_user }}"
+    password: "{{ sevice_user_pass | password_hash('sha512') }}"
+    state: present
+    shell: /bin/bash
+    create_home: yes
+
+- name: "Creating 'Postgres' user for database"
+  ansible.builtin.postgres_user:
+    name: "{{ db_user }}"
+    password: "{{ db_user_pass }}"
+    state: present
+    database: "{{ db_name }}"
+    login: true
+    host: "{{ ansible_host }}"
+    role: "{{ db_user_role }}"
+
+- name: "Create 'Ansible' user for ansible playbooks"
+  ansible.builtin.user:
+...
