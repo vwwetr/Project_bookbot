@@ -44,6 +44,33 @@
 ## Наполнение базы данных
 - Файлы лежат в директории file (или template) роли по пути: Project_bookboot/Ansible/database/files/
 
+## Ansible роли 
+- PostgreSQL
+- Database
+- BackupDB
+
 ```sh
 ansible-galaxy init database 
+ansible-galaxy collection install community.postgresql
 ```
+
+# В отдельную роль для настройки бекапов
+```yml
+- name: Create directory for SQL scripts
+file:
+path: /opt/postgresql/sql
+state: directory
+owner: postgres
+group: postgres
+mode: '0750'
+```
+## Порядок выполнения db_role
+Роль должна запускаться в такой последовательности:
+1. Установка PostgreSQL (pgdg)
+2. initdb
+3. Копирование TLS файлов
+4. Настройка postgresql.conf
+5. Настройка pg_hba.conf
+6. (handlers) Рестарт PostgreSQL
+7. Проверка через postgresql_ping
+8. Создание пользователей / баз

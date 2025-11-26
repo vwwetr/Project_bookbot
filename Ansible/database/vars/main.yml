@@ -1,3 +1,0 @@
----
-source_dir: "./files/"
-destination_dir: "/opt/postgresql/sql/" #best practise DeOps

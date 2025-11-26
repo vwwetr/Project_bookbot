@@ -1,0 +1,9 @@
+###########
+# Bookboot #
+###########
+---
+- name: Configure database node
+  hosts: database
+  become: true
+  roles:
+    - database

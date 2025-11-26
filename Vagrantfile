@@ -22,6 +22,16 @@ Vagrant.configure("2") do |config|
       node.vm.box_version = box_version
       node.vm.network :private_network, ip: ip_address
 
+      # Автоматическое открытие порта SSH на ноде через firewalld
+      node.vm.provision "shell", inline: <<-SHELL
+        sudo systemctl enable firewalld
+        sudo systemctl start firewalld
+        sudo firewall-cmd --permanent --add-service=ssh
+        sudo firewall-cmd --permanent --add-port=22/tcp
+        sudo firewall-cmd --reload
+        sudo firewall-cmd --query-port=22/tcp
+      SHELL
+
       node.vm.provision "shell", inline: "echo hello from #{name} node!"
 
       node.vm.provider "virtualbox" do |vb|

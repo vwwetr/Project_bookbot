@@ -1,3 +1,19 @@
-#SPDX-License-Identifier: MIT-0
 ---
-# handlers file for database
+# Перезапускает сервис PostgreSQL после изменения конфигурации.
+# Используется notification из template/postgresql.conf и pg_hba.conf.
+- name: restart postgresql
+  ansible.builtin.service:
+    name: "{{ postgresql_service_name }}"
+    state: restarted
+  become: true
+
+# Проверяет, что PostgreSQL успешно запустился после перезапуска.
+# Повторяет попытки подключения, пока сервер не станет доступным.
+- name: check postgresql alive
+  community.postgresql.postgresql_ping:
+  register: pg_ping_result
+  until: pg_ping_result.ping | default(False) | bool
+  retries: 20
+  delay: 3
+  become: true
+  become_user: postgres

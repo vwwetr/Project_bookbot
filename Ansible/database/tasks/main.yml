@@ -1,23 +1,69 @@
 ---
-- name: PostgreSQL CentOS Check; If "have not"
-  hosts: database
+# Установка PostgreSQL из стандартных репозиториев CentOS Stream 10
+- name: Install PostgreSQL server and required packages
+  # Нужен для: установки PostgreSQL-сервера, contrib-модулей и драйвера для Ansible-модулей PostgreSQL
+  ansible.builtin.dnf:
+    name: "{{ postgresql_packages }}"
+    state: present
   become: true
 
-- name: Create directory for SQL scripts
-  file:
-    path: /opt/postgresql/sql
-    state: directory
+# Инициализация кластера БД (один раз)
+- name: Initialize PostgreSQL DB cluster
+  ansible.builtin.command:
+    cmd: "postgresql-setup --initdb"
+  args:
+    # Файл PG_VERSION появляется только после успешного initdb
+    creates: "{{ postgresql_data_dir }}/PG_VERSION"
+  when: postgresql_initdb | bool
+  become: true
+  # На CentOS/RHEL этот скрипт инициализации выполняет все необходимые действия
+  # от имени пользователя postgres в нужной директории (по умолчанию /var/lib/pgsql/data).
+
+# Развёртывание postgresql.conf
+- name: Deploy postgresql.conf
+  ansible.builtin.template:
+    src: postgresql.conf.j2
+    dest: "{{ postgresql_data_dir }}/postgresql.conf"
     owner: postgres
     group: postgres
-    mode: '0750'
-- copy:
-    src: {{source_dir}}
-    dest: {{destination_dir}}
-# vars:
+    mode: '0600'
+  notify:
+    - restart postgresql
+    - check postgresql alive
+  become: true
 
-# PostgreSQL Centos Install
-# PostgreSQL Centos Run
-# PotstgreSQL Create database
-# PostgreSQL create roles
-# PostgreSQL create roles
+# Развёртывание pg_hba.conf
+- name: Deploy pg_hba.conf template
+  ansible.builtin.template:
+    src: pg_hba.conf.j2
+    dest: "{{ postgresql_data_dir }}/pg_hba.conf"
+    owner: postgres
+    group: postgres
+    mode: '0600'
+  notify: restart postgresql
+  become: true
 
+# Запуск сервиса PostgreSQL и включение автозапуска
+- name: Run PostgreSQL server and make it enable on boot
+  ansible.builtin.service:
+    name: "{{ postgresql_service_name }}"
+    state: started
+    enabled: true  # Флаг на автозапуск при развертывании
+    daemon_reload: true
+  become: true
+
+# Health-check PostgreSQL через модуль community.postgresql
+- name: PostgreSQL Health Check
+  community.postgresql.postgresql_ping:
+    login_unix_socket: "/var/run/postgresql"
+    login_db: "postgres"
+    # Подключение происходит через локальный сокет с использованием пользователя ОС "postgres"
+    # к базе данных по умолчанию "postgres". Пароль не нужен благодаря peer authentication.
+  register: pg_ping_result
+  until: pg_ping_result.is_available | default(False) | bool
+  # Ждём, пока модуль postgresql_ping вернёт is_available=True.
+  # Условие устойчиво к неопределённому значению (default(False)).
+  retries: 20   # Увеличим количество попыток на случай медленного старта
+  delay: 3      # Если не получится, то повторится попытка через 3 секунды.
+  become: true
+  become_user: postgres  # Выполнение от имени системного пользователя postgres

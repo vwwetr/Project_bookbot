@@ -1,3 +1,45 @@
-#SPDX-License-Identifier: MIT-0
 ---
-# defaults file for database
+# Пакеты PostgreSQL из стандартных репозиториев CentOS Stream 10
+postgresql_packages:
+  - postgresql-server
+  - postgresql-contrib
+  - python3-psycopg2   # для community.postgresql.* модулей
+
+# Директория данных PostgreSQL (стандартная для системного PostgreSQL на CentOS)
+postgresql_data_dir: "/var/lib/pgsql/data"
+
+# Имя systemd-сервиса PostgreSQL
+postgresql_service_name: "postgresql"
+
+# Нужно ли выполнять initdb через postgresql-setup
+postgresql_initdb: true
+
+# Параметры для pg_hba.conf.j2
+internal_networks:
+  - "127.0.0.1/32"
+  - "10.0.0.0/8"
+  - "192.168.0.0/16"
+postgres_port: 5432
+postgres_listen: "*"
+postgres_max_connections: 100
+postgres_password_encryption: "scram-sha-256"
+
+# SSL (пути завязаны на data_dir)
+postgres_ssl: false
+postgres_ssl_cert: "{{ postgresql_data_dir }}/server.crt"
+postgres_ssl_key: "{{ postgresql_data_dir }}/server.key"
+postgres_ssl_ca: "{{ postgresql_data_dir }}/rootCA.crt"
+
+# Логирование
+postgres_log_destination: "stderr"
+postgres_logging_collector: "on"
+postgres_log_line_prefix: "%m [%p] "
+
+# Hardware
+postgres_shared_buffers: "256MB"
+postgres_work_mem: "4MB"
+postgres_maintenance_work_mem: "64MB"
+postgres_effective_cache_size: "512MB"
+
+# Дополнительные параметры, которые можно пробросить в postgresql.conf из шаблона
+postgres_custom_parameters: {}

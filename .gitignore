@@ -3,3 +3,5 @@
 .vagrant
 .vscode
 Someshit/
+Ansible/logs/
+Ansible/users/
