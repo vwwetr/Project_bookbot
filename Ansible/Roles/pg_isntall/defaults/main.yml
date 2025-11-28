@@ -1,0 +1,2 @@
+---
+import_vars: ../../vars/pgsql_common.yml

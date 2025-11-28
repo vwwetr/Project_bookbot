@@ -1,11 +1,22 @@
 ---
+# Contain a list of common variables for db_roles
+
+# db_create role vars
+postgresql_db_name: "learningbot"
+
+application_user: "app_user"
+application_user_password: "app_user"
+
+readonly_user: "read_only"
+readonly_user_paswsord: "read_only"
+
 # Пакеты PostgreSQL из стандартных репозиториев CentOS Stream 10
 postgresql_packages:
   - postgresql-server
   - postgresql-contrib
   - python3-psycopg2   # для community.postgresql.* модулей
 
-# Директория данных PostgreSQL (стандартная для системного PostgreSQL на CentOS)
+# Директория данных PostgreSQL (стандартная для системного PostgreSQL на CentOS):
 postgresql_data_dir: "/var/lib/pgsql/data"
 
 # Имя systemd-сервиса PostgreSQL

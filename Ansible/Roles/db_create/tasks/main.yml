@@ -1,0 +1,98 @@
+#SPDX-License-Identifier: MIT-0
+---
+# postgresql Health_check
+# Create a role with the name db_create
+# Creae a role "app_user"
+# Creae a role "metric_user"
+# Create db_table
+
+- name: Ensure PostgreSQL extension 'unaccent' is installed
+  community.postgresql.postgresql_query:
+    db: "{{ postgresql_db_name }}"
+    query: "CREATE EXTENSION IF NOT EXISTS unaccent;"
+  become: true
+  become_user: postgres
+  notify:
+    - Install PostgreSQL extension 'unaccent'
+
+- name: Create database
+  community.postgresql.postgresql_db:
+    name: "{{ postgres_db_name }}"
+    owner: "{{ application_user }}" # Точно он?
+    encoding: UTF8  # Provide support for UTF-8 encoding
+    state: present
+  become: true
+  become_user: postgres
+
+# --- Продолжить отсюда ----
+- name: Create users
+  community.postgresql.postgresql_user:
+    name: "{{ item.name }}"
+    password: "{{ item.password }}"
+    role_attr_flags: "LOGIN" # Что это?
+    state: present
+    become: true
+    become_user: postgres
+    items:
+      - { name: "{{ db_create_user }}", password: "{{ db_create_password }}" }
+      - { name: "{{ app_user }}", password: "{{ app_password }}" }
+      - { name: "{{ metric_user }}", password: "{{ metric_password }}" }
+
+- name: Create roles
+  community.postgresql.postgresql_user:
+    name: "{{ item.name }}"
+    state: present
+    become: true
+    become_user: postgres
+    items:
+      - { name: "{{ db_create_role }}", password: "{{ db_create_password }}" }
+      - { name: "{{ app_role }}", password: "{{ app_password }}" }
+      - { name: "{{ metric_role }}", password: "{{ metric_password }}" }
+
+- name: Grant privileges to the user on the database and schema
+  community.postgresql.postgresql_query:
+    db: "{{ postgresql_db_name }}"
+    query: |
+      GRANT CONNECT ON DATABASE {{ postgresql_db_name }} TO {{ app_user }};
+      GRANT USAGE ON SCHEMA public TO {{ app_user }};
+      GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO {{ app_user }};
+  become: true
+  become_user: postgres
+
+- name: Create books table exists
+  community.postgresql.postgresql_table:
+    db: "{{ postgres_db }}"
+    name: books
+    columns:
+      - name: id
+        type: bigint
+        primary_key: true
+        auto_increment: true
+      - name: title
+        type: varchar(255)
+        not_null: true
+      - name: author
+        type: varchar(100)
+      - name: section
+        type: varchar(50)
+        not_null: true
+        check: "section IN ('IT', 'Health', 'Finance', 'Lifestyle', 'Network', 'Spiritual')"  # Ограничение для категории
+      - name: format
+        type: varchar(50)
+        not_null: true  # NOT NULL
+        check: "format IN ('Book', 'Article', 'Video', 'Audio')"  # Ограничение для формата
+      - name: studytime
+        type: integer
+        not_null: true  # NOT NULL
+        check: "studytime IN (15, 30, 60, 90, 120)"  # Ограничение для времени обучения
+      - name: link
+        type: text
+      - name: normalized_title
+        type: varchar(255)
+        generated: "always as (lower(trim(unaccent(title)))) STORED"  # Генерируемое поле
+    constraints:
+      - name: normalized_title_unique
+        type: unique
+        columns: [normalized_title]  # Ограничение уникальности
+  become: true
+  become_user: postgres

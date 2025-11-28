@@ -1,0 +1,14 @@
+#SPDX-License-Identifier: MIT-0
+---
+- name: Restart PostgreSQL
+  ansible.builtin.service:
+    name: postgresql
+    state: restarted
+    become: true
+
+- name: Install PostgreSQL extension 'unaccent'
+  community.postgresql.postgresql_query:
+    db: "{{ postgresql_db_name }}"
+    query: "CREATE EXTENSION IF NOT EXISTS unaccent;"
+  become: true
+  become_user: postgres

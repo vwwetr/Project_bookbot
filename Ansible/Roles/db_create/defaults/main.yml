@@ -1,0 +1,3 @@
+#SPDX-License-Identifier: MIT-0
+---
+import_vars: ../../vars/pgsql_common.yml
