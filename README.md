@@ -62,7 +62,7 @@ sudo firewall-cmd --reload
 Jira автоматически закрывает задачи при merge Pull Request благодаря
 правилу:
 
-## Pull request merged → Transition issue to Done**
+## Pull request merged → Transition issue to Done
 ## 1. Обновить основную ветку
 
 Перейти в `main` и скачать последние изменения:
@@ -159,4 +159,76 @@ git push origin --delete feature/db
 ``` bash
 git branch -d feature/<name>
 ```
+
+### Для приложения:
+# Нормализация заголовка книги в Java Spring Boot + PostgreSQL
+
+## 1. Поле `normalizedTitle` в сущности `Book`
+
+Пример JPA-сущности:
+
+```java
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "book")
+public class Book {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private String title;
+
+    // Поле для нормализованного значения
+    @Column(name = "normalized_title", nullable = false)
+    private String normalizedTitle;
+
+    // геттеры/сеттеры ...
+
+    @PrePersist
+    @PreUpdate
+    private void normalize() {
+        this.normalizedTitle = TitleNormalizer.normalizeTitle(this.title);
+    }
+
+    // геттеры/сеттеры ...
+}
+Ключевая идея: перед вставкой/обновлением в БД Spring/JPA вызывает @PrePersist / @PreUpdate, и там мы всегда пересчитываем normalizedTitle.
+
+2. Реализация normalizeTitle(title) в Java
+Утилитный класс, который делает trim + lower + "unaccent":
+
+java
+Copy code
+import java.text.Normalizer;
+import java.util.Locale;
+
+public final class TitleNormalizer {
+
+    private TitleNormalizer() {
+    }
+
+    public static String normalizeTitle(String title) {
+        if (title == null) {
+            return null;
+        }
+
+        // trim + lower
+        String result = title.trim().toLowerCase(Locale.ROOT);
+
+        // Убираем диакритику (акценты) через Unicode-normalization
+        // Пример: "Café" -> "Cafe"
+        String normalized = Normalizer.normalize(result, Normalizer.Form.NFD);
+        return normalized.replaceAll("\\p{M}", "");
+    }
+}
+Аналог lower(trim(unaccent(title))), но на стороне Java:
+
+trim() — убирает пробелы по краям;
+
+toLowerCase(Locale.ROOT) — приводит к нижнему регистру;
+
+Normalizer + replaceAll("\\p{M}", "") — удаляет диакритику (акценты).
 

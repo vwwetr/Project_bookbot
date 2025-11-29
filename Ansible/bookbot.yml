@@ -2,9 +2,20 @@
 # Bookboot #
 ###########
 ---
-- name: Configure database node
+- name: Install and configure PostgreSQL on OS level
   hosts: database
   become: true
+  become_user: root
+  vars_files:
+    - vault/pgsql_common.yml
   roles:
     - pg_install
+
+- name: Configure bookbot database schema and permissions
+  hosts: database
+  become: true
+  become_user: postgres
+  vars_files:
+    - vault/pgsql_common.yml
+  roles:
     - db_create

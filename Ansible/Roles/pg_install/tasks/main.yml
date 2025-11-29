@@ -5,7 +5,6 @@
   ansible.builtin.dnf:
     name: "{{ postgresql_packages }}"
     state: present
-  become: true
 
 # Инициализация кластера БД (один раз)
 - name: Initialize PostgreSQL DB cluster
@@ -15,7 +14,6 @@
     # Файл PG_VERSION появляется только после успешного initdb
     creates: "{{ postgresql_data_dir }}/PG_VERSION"
   when: postgresql_initdb | bool
-  become: true
   # На CentOS/RHEL этот скрипт инициализации выполняет все необходимые действия
   # от имени пользователя postgres в нужной директории (по умолчанию /var/lib/pgsql/data).
 
@@ -30,7 +28,6 @@
   notify:
     - restart postgresql
     - check postgresql alive
-  become: true
 
 # Развёртывание pg_hba.conf
 - name: Deploy pg_hba.conf template
@@ -41,7 +38,6 @@
     group: postgres
     mode: '0600'
   notify: restart postgresql
-  become: true
 
 # Запуск сервиса PostgreSQL и включение автозапуска
 - name: Run PostgreSQL server and make it enable on boot
@@ -50,7 +46,6 @@
     state: started
     enabled: true  # Флаг на автозапуск при развертывании
     daemon_reload: true
-  become: true
 
 # Health-check PostgreSQL через модуль community.postgresql
 - name: PostgreSQL Health Check
@@ -65,5 +60,4 @@
   # Условие устойчиво к неопределённому значению (default(False)).
   retries: 20   # Увеличим количество попыток на случай медленного старта
   delay: 3      # Если не получится, то повторится попытка через 3 секунды.
-  become: true
   become_user: postgres  # Выполнение от имени системного пользователя postgres

@@ -4,11 +4,12 @@
 # db_create role vars
 postgresql_db_name: "learningbot"
 
-application_user: "app_user"
-application_user_password: "app_user"
+app_group_role: "bookbot"
+app_user: "app"
+app_user_password: "app"
 
-readonly_user: "read_only"
-readonly_user_paswsord: "read_only"
+readonly_user: "readonly"
+readonly_user_password: "readonly"
 
 # Пакеты PostgreSQL из стандартных репозиториев CentOS Stream 10
 postgresql_packages:

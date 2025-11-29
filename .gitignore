@@ -3,5 +3,5 @@
 .vagrant
 .vscode
 Someshit/
-Ansible/logs/
+Ansible/Roles/users/
 Documentation/.$project_scheme.drawio.bkp

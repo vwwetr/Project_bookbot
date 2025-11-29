@@ -6,9 +6,13 @@
     state: restarted
     become: true
 
-- name: Install PostgreSQL extension 'unaccent'
+- name: Table healthcheck
   community.postgresql.postgresql_query:
     db: "{{ postgresql_db_name }}"
-    query: "CREATE EXTENSION IF NOT EXISTS unaccent;"
+    query: "SELECT * FROM book;"
   become: true
   become_user: postgres
+  register: healthcheck_result
+  failed_when: healthcheck_result.failed | default(false) 
+  # Если модуль пометил результат как failed=true — считаем таск упавшим.
+  # Если флага failed нет (undefined) — считаем, что всё ок (false).
