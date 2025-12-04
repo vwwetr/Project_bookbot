@@ -1,6 +1,12 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+# Отключаем автогенерацию уникального SSH-ключа для каждой VM:
+# config.ssh.insert_key = false 
+# При значении false Vagrant НЕ вставляет свой ключ в машину и использует общий
+# insecure_private_key из ~/.vagrant.d для пользователя vagrant (удобно для стендов,
+# но небезопасно для прод-окружения)
+
 # Nodes parameters
 box_image     = "bento/centos-stream-10"
 box_version   = "202510.26.0"
@@ -9,8 +15,8 @@ limit_memory  = "1024"
 limit_cpus    = 1
 
 Vagrant.configure("2") do |config|
+  config.ssh.insert_key = false 
   config.vm.box_check_update = false
-
   nodes = ["Database", "NginxTech", "NginxUi", "OpenSearch", "Monitoring"]
 
   nodes.each_with_index do |name, i|

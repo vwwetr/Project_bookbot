@@ -90,29 +90,26 @@ https://docs.ansible.com/projects/ansible/latest/collections/community/postgresq
     - Получает CONNECT + SELECT на таблицы напрямую (без отдельной RO-группы, чтобы не раздувать схему).
 ## Наполнение базы данных
 - Файлы лежат в директории file (или template) роли по пути: Project_bookboot/Ansible/database/files/
-
 ## Ansible роли 
 - pg_isntall
 - db_create
 - db_backup
 
 ```sh
-ansible-galaxy init database 
+ansible-galaxy init pg_install 
 ansible-galaxy init db_create
-ansible-galaxy init dump_restore
+ansible-galaxy init db_backup
 ansible-galaxy collection install community.postgresql
 ```
-
-# В отдельную роль для настройки бекапов
-```yml
-- name: Create directory for SQL scripts
-file:
-path: /opt/postgresql/sql
-state: directory
-owner: postgres
-group: postgres
-mode: '0750'
-```
+### db_backup tree
+roles/postgresql_backup/
+  tasks/
+    main.yml
+    user.yml
+    dirs.yml
+    scripts.yml
+    cron.yml
+    storage.yml
 ## Порядок выполнения db_role
 Роль должна запускаться в такой последовательности:
 1. Установка PostgreSQL (pgdg)
@@ -123,7 +120,6 @@ mode: '0750'
 6. (handlers) Рестарт PostgreSQL
 7. Проверка через postgresql_ping
 8. Создание пользователей / баз
-
 ## Ensure в ролях ansible
 ### Логика любого модуля с ensure:
 - Проверить, существует ли роль app_user.
@@ -140,7 +136,6 @@ mode: '0750'
     Таска Ensure X — это декларация: “объект X должен быть в таком виде”.
     Дальше инструмент сам решает, нужно ли его создать, изменить или оставить как есть.
     Поэтому слово “Ensure” лучше отражает идеологию IaC, чем “Create”, которое звучит как одноразовая операция."
-
 ## DDL, DML, DCL, TCL
 - GRANT <список_привилегий> ON <тип_объекта> <объект(ы)> TO <роль(и)> [WITH GRANT OPTION]; ### DCL (Data Control Language)
     - ALTER DEFAULT PRIVILEGES: “для всех ТАБЛИЦ, которые в будущем создаст app_user в схеме public, автоматически сделай GRANT таких-то прав таким-то ролям”.
@@ -203,7 +198,6 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "{{ app_user }}"
   GRANT SELECT ON TABLES TO "{{ readonly_user }}";
 
 ```
-
 ## Уникальный индекс в базе данных
 В логике бота / Spring Boot:
     - при вставке книги просто записываешь поле title как есть;
@@ -215,5 +209,95 @@ FROM books
 WHERE lower(trim(unaccent(title))) = lower(trim(unaccent(:title_in)));
 ```
     - если попытаешься вставить «логический дубль» — поймаешь unique constraint violation по индексу books_normalized_title_unique
-
-
+## Настройка бекапа
+- pg_dump (custom, выбран по best practise как наиболее оптимальный)
+    - pg_dump запускаем на Node4 (backup/monitoring-нода) под сервисным пользователем pgbackup, подключаясь к Node1 по TCP.
+- pg_restore 
+    - Из database ноды
+- Дамп повесить на кронтаб 
+    - На какого пользователя линукс, в какую роль постгрес, с какими правами в какую БД?
+- Куда кидаем дамп и откуда стартуем pg_restore?
+    - Пока идея кидать дамп на все технические ноды, кроме database, где база крутится
+    - Node1: только Postgres, без долгого хранения бэкапов (максимум — временная копия на пару последних запусков).
+        - Данные читаем всегда с primary (Node1) — других источников нет.
+    - Node4: основной backup-хост (там же Pg-клиент, скрипты, cron, мониторинг успешности последнего бэкапа через Zabbix).
+    - Основное хранение бэкапов — Node4, с ротацией и мониторингом успешности/возраста последнего бэкапа через Zabbix.
+    - Node5: запасной репозиторий (внутрикластерная копия на localhost).
+    - Внутреннее резервирование — копия бэкапов с Node4 на Node5.
+    - Внешнее резервирование — периодический экспорт бэкапов (с Node4 или Node5) на хостовый Mac / внешний диск. Mac host / внешнее хранилище: off-site уровень.
+### Логика дампа:
+- `pg_dump` будем запускать скриптом на мастер-ноде, создавать локальный дамп на мастер ноде, по скрипту через `cron` каждую минуту будем отправлять на бекап-ноду и в конце удалять локальный дамп с мастера;
+## Пользователи linux и crontab job
+- user: pgbackup
+    ```shell
+    useradd --system \
+    --home-dir /var/lib/pgbackup \
+    --shell /usr/sbin/nologin \
+    --gid pgbackup \
+    pgbackup
+    ```
+- group: pgbackup (однаимённая системная группа)
+    - `groupadd --system pgbackup`
+- type: системный пользователь, без sudo, без интерактивного SSH снаружи
+- Присутсвие на нодах:
+- node4 (основная backup-нода):
+    - `install -d -o pgbackup -g pgbackup -m 700 /var/lib/pgbackup` - Домашний каталог пользователя
+    - `install -d -o pgbackup -g pgbackup -m 750 /opt/pgbackup` - каталог для скриптов
+    - `install -d -o pgbackup -g pgbackup -m 750 /var/backups/postgresql` - каталог для бекапов
+    - `install -d -o pgbackup -g pgbackup -m 750 /var/backups/postgresql/bookbot_db` - каталог для бекапов (зачем?)
+    - Права:
+        - каталоги: 750 (rwxr-x---), владелец pgbackup:pgbackup;
+        - файлы-дампы: по умолчанию 640 (rw-r-----), владелец pgbackup:pgbackup.
+    - Каталог дляч логов бекап-скриптов:
+        - `install -d -o pgbackup -g pgbackup -m 750 /var/log/pgbackup`
+        - Логи вида /var/log/pgbackup/pgdump-bookbot_db.log с правами 640.
+    - SSH и .pgpass
+    ```shell
+    install -d -o pgbackup -g pgbackup -m 700 /var/lib/pgbackup/.ssh
+    touch /var/lib/pgbackup/.pgpass
+    chown pgbackup:pgbackup /var/lib/pgbackup/.pgpass
+    chmod 600 /var/lib/pgbackup/.pgpass
+    ```
+        - В .pgpass — доступ к PostgreSQL на Node1 под DB-пользователем backup_user.
+        - В .ssh — ключи для доступа на Node5 (и, при необходимости, на другие хосты только как storage).
+- node5 (вторичный backup)
+    - Цель: только приймать и хранить копии бэкапов из Node4.
+    - Пользователь и группа - по аналогии с node4
+        - Желательно, чтобы uid/gid совпадали с Node4 (Ansible это легко обеспечивает).
+    - Каталоги для хранения:
+        - `install -d -o pgbackup -g pgbackup -m 750 /var/backups/postgresql`
+        - `install -d -o pgbackup -g pgbackup -m 750 /var/backups/postgresql/bookbot_db`
+    - На Node5 .ssh/authorized_keys будет принимать ключ от Node4/pgbackup.
+        - `install -d -o pgbackup -g pgbackup -m 700 /var/lib/pgbackup`
+        - `install -d -o pgbackup -g pgbackup -m 700 /var/lib/pgbackup/.ssh`
+    - На Node5 cron-джобов можно не заводить:
+        - он используется как passive storage;
+        - rsync/scp выполняется с Node4 под pgbackup, подключаясь к pgbackup@node5.
+- DB_node (node1)
+    - для симметрии (и возможных локальных операций), допустимо создать его так же, как на Node4/Node5:
+    - pgbackup не должен иметь прав на каталог с физическими данными PostgreSQL (/var/lib/pgsql/data или что там у твоего контейнера).
+- Права и ограничения в целом:
+    - Для пользователя pgbackup по best practice:
+        - Нет sudo, нет прав на изменение системных конфигов.
+    - На всех нодах он владеет только:
+        - своим home (/var/lib/pgbackup);
+        - каталогами backup/logs/scripts, перечисленными выше.
+    - Доступ к БД только через DB-учётку backup_user (в .pgpass), роль bookbot_backup_role в PostgreSQL.
+    - SSH-ключи:
+        - Node4 → Node5: ключ лежит на Node4, authorized_keys на Node5;
+        - можно ограничить ключ на Node5 from= и/или command= в authorized_keys, чтобы дополнительно защититься.
+- Разграничить роли по нодам в playbook
+- Добавить в таску роли db_create:
+    - Создаём отдельную групповую роль без логина, например:
+        - `CREATE ROLE bookbot_backup_role NOLOGIN;` Эта роль описывает, какие привилегии нужны для чтения данных для логического бэкапа.
+- Сделал пользака на нодах, нужно добавить доступ ему в базу (роль, и так далее)
+    - Групповая роль для бэкапов
+    - Логин-пользователь для бэкапа
+    - Чтобы права не отваливались на новых таблицах (так в базу же добавить, не?)
+    - Если у тебя PostgreSQL 14+ и нужно сразу кластерно (что это???)
+    - Почему не использовать существующие роли (можно же дать ограниченные права в рамках имеющейся групповой роли, не?)
+    - Связка с ОС-пользователем (чтобы было понятно, как стыкуется с предыдущим ответом)
+## Готовые роли по pg_backup
+    - Роль для настройки cron-джоба регулярных полных бэкапов PostgreSQL через pg_dump:
+        - https://galaxy.semaphoreui.com/views/manics/ansible-role-postgresql-backup/overview
+        - https://github.com/ome/ansible-role-postgresql-backup?utm_source=chatgpt.com

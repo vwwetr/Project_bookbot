@@ -1,0 +1,12 @@
+# Managed by Ansible - cluster-users role
+
+{% for rule in item.sudo %}            {# Начало цикла Jinja2: перебираем все sudo-правила из списка item.sudo #}
+{{ item.name }} {{ rule }}             {# Для каждого правила выводим строку sudoers: "имя_пользователя правило" #}
+{% endfor %}                           {# Конец цикла Jinja2 #}
+
+Defaults:{{ item.name }} !requiretty   {# В sudoers: для этого пользователя отключаем требование TTY (разрешаем sudo из Ansible/скриптов) #}
+Defaults:{{ item.name }} env_reset     {# В sudoers: для этого пользователя сбрасываем окружение при sudo (безопасное дефолтное поведение) #}
+
+{# Шаблон генерирует файл /etc/sudoers.d для пользователя: 
+ в цикле добавляются его sudo-правила из item.sudo, а через Defaults отключается требование TTY (!requiretty)
+ и включается безопасный сброс окружения (env_reset) при работе через sudo. #}

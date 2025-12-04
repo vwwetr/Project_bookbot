@@ -1,0 +1,95 @@
+---
+# 0. Объединить все списки пользователей в один, чтобы дальше в тасках работать только с ним. Масштабируемо, реюзабельно!
+- name: Build combined list of cluster users
+  ansible.builtin.set_fact: # Модуль, который позволяет устанавливать переменные
+    cluster_users_all: >- # Собираем все списки пользователей в один
+      {{ cluster_users_common | default([]) +
+         cluster_users_project | default([]) }}
+
+# 1. Группы (primary group)
+- name: Ensure primary groups for cluster users exist
+  ansible.builtin.group:
+    name: "{{ item.group | default(item.name) }}" # Если задано, group, иначе совпадает с именем пользователя
+    gid: "{{ item.gid | default(omit) }}" # Если не задан, то не задавать gid
+    state: present
+  loop: "{{ cluster_users_all }}" # пройди по списку cluster_users_all
+  loop_control:
+    label: "{{ item.name }}" # Ansible вместо длинного JSON item в выводе будет показывать только человеко-читаемое значение поля name текущего элемента.
+
+# 2. Пользователи
+- name: Ensure cluster users exist
+  ansible.builtin.user:
+    name: "{{ item.name }}" 
+    uid: "{{ item.uid | default(omit) }}" # Если не задан, то не задавать uid
+    group: "{{ item.group | default(item.name) }}" # Если задано, group, иначе совпадает с именем пользователя
+    groups: "{{ item.groups | default(omit) }}" # Если не задан, то не добавлять в группу
+    append: true
+    home: "{{ item.home | default('/home/' + item.name) }}" # Если задано, home, иначе /home/<username>
+    shell: "{{ item.shell | default('/bin/bash') }}" # Если не задан, то /bin/bash
+    create_home: true
+    password_lock: "{{ item.lock_password | default(true) }}" # Если у пользователя явно не указано lock_password, то по умолчанию пароль должен быть заблокирован
+    state: present
+  loop: "{{ cluster_users_all }}" 
+  loop_control:
+    label: "{{ item.name }}" # Ansible вместо длинного JSON item в выводе будет показывать только человеко-читаемое значение поля name текущего элемента.
+
+# 3. Права на $HOME (чтобы не зависеть от umask)
+- name: Ensure home directory permissions for cluster users
+  ansible.builtin.file:
+    path: "{{ item.home | default('/home/' + item.name) }}" # Если задано, home, иначе /home/<username>
+    state: directory
+    owner: "{{ item.name }}" 
+    group: "{{ item.group | default(item.name) }}" # Если задано, group, иначе совпадает с именем пользователя
+    mode: "0700" # RWX, 0, 0
+  loop: "{{ cluster_users_all }}" #
+  loop_control:
+    label: "{{ item.name }}" # Ansible вместо длинного JSON item в выводе будет показывать только человеко-читаемое значение поля name текущего элемента.
+
+# 4. ~/.ssh
+- name: Ensure .ssh directory exists when ssh_keys are defined
+  ansible.builtin.file:
+    path: "{{ item.home | default('/home/' + item.name) }}/.ssh" # Путь к ~/.ssh: берём item.home, а если не задан, то /home/<username>/.ssh
+    state: directory
+    owner: "{{ item.name }}" # Владелец каталога .ssh — сам пользователь
+    group: "{{ item.group | default(item.name) }}" # Группа каталога: item.group, если задана, иначе совпадает с именем пользователя
+    mode: "0700" # RWX, 0, 0
+  when: item.ssh_keys is defined and item.ssh_keys | length > 0 # Выполнять таск только если ssh_keys определены и список не пустой
+  loop: "{{ cluster_users_all }}"
+  loop_control:
+    label: "{{ item.name }}" # Ansible вместо длинного JSON item в выводе будет показывать только человеко-читаемое значение поля name текущего элемента.
+
+# 5. Install authorized_keys
+- name: Install authorized_keys for cluster users
+  ansible.posix.authorized_key:
+    user: "{{ item.0.name }}" # Пользователь Linux, в чей ~/.ssh/authorized_keys будет добавлен ключ
+    key: "{{ item.1 }}" # Конкретный публичный SSH-ключ (строка), который нужно добавить
+    state: present
+  loop: "{{ cluster_users_all | subelements('ssh_keys', skip_missing=True) }}"  # Разворачивает пользователей и их ssh_keys в пары (user, key) для перебора каждого ключа отдельно, пропуская записи без ssh_keys
+  # subelements возвращает список из двух элементов, и к ним обращаются по индексам, начиная с 0.
+  loop_control:
+    label: "{{ item.0.name }}" # Ansible вместо длинного JSON item в выводе будет показывать только человеко-читаемое значение поля name текущего элемента.
+
+# 6. sudoers (отдельный файл на каждого пользователя).
+# проще управлять правами на уровне роли/проекта;
+# меньше риск «зачистить» чужие правила;
+# удаление пользователя = можно просто удалить файл 99-username.
+- name: Configure sudo for cluster users
+  ansible.builtin.template:
+    src: sudoers_user.j2
+    dest: "/etc/sudoers.d/99-{{ item.name }}" # Для детализированного управления доступом пользователей к командам, повышения безопасности системы.
+    # 99-... — это способ сделать так, чтобы этот файл обрабатывался в самом конце и его настройки переопределяли более ранние.
+    owner: root          # файлы sudoers должны принадлежать root
+    group: root          # и группе root — требования безопасности
+    mode: "0440"         # r, r, no - классические права для sudoers
+    validate: "visudo -cf %s"   # проверить синтаксис перед записью
+  when: item.sudo | default([]) | length > 0  # «У текущего item есть непустой список sudo-правил?»
+  # Берём поле sudo из текущего элемента цикла item.
+  # Фильтр default говорит:
+    # если item.sudo существует и не пустой → оставить как есть;
+    # если item.sudo не задан или None → подставить пустой список []
+  # lenght > 0 — чтобы не создавать пустой файл sudoers
+    # если в item.sudo есть хотя бы один элемент → условие True;
+    # если нет (или ключа нет вовсе, или пустой список) → False.
+  loop: "{{ cluster_users_all }}" 
+  loop_control:
+    label: "{{ item.name }}" # Ansible вместо длинного JSON item в выводе будет показывать только человеко-читаемое значение поля name текущего элемента.

@@ -2,12 +2,20 @@
 # Bookboot #
 ###########
 ---
+# Настроить
+#- name: Set up cluster users
+#  hosts: all
+#  roles:
+#    - cluster_users
+#  vars_files:
+#    - group_vars/cluster_users.yml
+
 - name: Install and configure PostgreSQL on OS level
   hosts: database
   become: true
   become_user: root
   vars_files:
-    - vault/pgsql_common.yml
+    - group_vars/pgsql_common.yml
   roles:
     - pg_install
 
@@ -16,6 +24,12 @@
   become: true
   become_user: postgres
   vars_files:
-    - vault/pgsql_common.yml
+    - group_vars/pgsql_common.yml
   roles:
     - db_create
+
+# Привести в порядок:
+
+#- hosts: pg_db:pg_backup_primary:pg_backup_storage
+#  roles:
+#    - postgresql_backup

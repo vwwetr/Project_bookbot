@@ -3,5 +3,5 @@
 .vagrant
 .vscode
 Someshit/
-Ansible/Roles/users/
 Documentation/.$project_scheme.drawio.bkp
+Ansible/group_vars/all/vault.yml

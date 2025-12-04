@@ -1,0 +1,37 @@
+# Check!!!
+
+cluster_users_common:
+  - name: ansible
+    comment: "Configuration management user"
+    uid: 1100
+    gid: 1100
+    group: ansible
+    groups:
+      - wheel
+    home: /home/ansible
+    shell: /bin/bash
+    ssh_keys:
+      - "{{ vault_ansible_ssh_pubkey }}"
+    sudo:
+      - "ALL=(ALL) NOPASSWD:ALL" # Разрешить пользователю выполнять любые команды от любого пользователя (ALL=ALL) без запроса пароля через sudo
+    lock_password: true
+
+#cluster_users_project:
+#  - name: dbbackup
+#   uid: 1101
+#    gid: 1101
+#    group: backup
+#    groups: ["backup"]
+#    shell: /bin/bash
+
+#  - name: monitoring
+#    uid: 902
+#    group: monitoring
+#    groups: ["monitoring"]
+#    shell: /bin/bash
+
+#  - name: logs
+#    uid: 903
+#    group: logs
+#    groups: ["logs"]
+#    shell: /bin/bash
