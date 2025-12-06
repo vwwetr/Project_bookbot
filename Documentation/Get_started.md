@@ -48,18 +48,10 @@ ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_ansible -C "ansible"
 
 ### ========== Ansible servers ==========
 ### Доступ к нодам стенда под пользователем ansible
-Host cluster-*
+Host 172.17.177.*
   User ansible
   IdentityFile /home/vwwetr/.ssh/ansible_id_ed25519
   #### для учебного стенда можно отключить проверку хост-ключей:
-  StrictHostKeyChecking no
-  UserKnownHostsFile /dev/null
-
-### (Опционально) доступ под пользователем vagrant для bootstrap/отладки
-Host vagrant-*
-  User vagrant
-  IdentityFile ~/.vagrant.d/insecure_private_key
-  IdentitiesOnly yes
   StrictHostKeyChecking no
   UserKnownHostsFile /dev/null
 
@@ -80,19 +72,18 @@ Esc, wq!, Enter - выйти с сохранением
 ```
 ---
 
-## 5. Один раз выполнить bootstrap-плейбук (создание пользователя `ansible`)
+## 5. Один раз выполнить плейбук с тегом [users] (создание пользователя `ansible`)
 
-Bootstrap-плейбук запускается под пользователем `vagrant` и:
-
-- создаёт пользователя `ansible` на всех нодах;
-- настраивает ему домашний каталог, shell, UID/GID;
-- добавляет его публичный ключ в `authorized_keys`;
-- создаёт `/etc/sudoers.d/99-ansible` с нужными правами.
+Плейбук запустится под пользователем `vagrant` и:
+- Создаст пользователя `ansible` на всех нодах;
+- Настроит ему домашний каталог, shell, UID/GID;
+- Добавит его публичный ключ в `authorized_keys`;
+- Создаст `/etc/sudoers.d/99-ansible` с нужными правами.
 
 Запуск (из директории /Ansible/):
 
 ```bash
-ansible-playbook bootstrap.yml -u vagrant --private-key=~/.vagrant.d/insecure_private_key --ask-vault-pass
+ansible-playbook bootstrap.yml -u vagrant --private-key=~/.vagrant.d/insecure_private_key --tags users --ask-vault-pass
 ```
 
 Параметры:
@@ -100,8 +91,5 @@ ansible-playbook bootstrap.yml -u vagrant --private-key=~/.vagrant.d/insecure_pr
 - `-u vagrant` — подключение под пользователем `vagrant`;
 - `--private-key=~/.vagrant.d/insecure_private_key` — стандартный Vagrant-ключ;
   - Он общий для всех нод, поднимаемых вагрантом, благодаря строчке `config.ssh.insert_key = false`
+- `--tags users` - выполнить в плейбуке только джобу с тегом [users]
 - `--ask-vault-pass` — запрос пароля для расшифровки `vault.yml`, чтобы прокинуть публичный ключ для пользователя Ansible, который хранится в vault.
-
----
-
-# Далее - все работы с кластером ведутся пользователем ansible через playbook bookbot.yml

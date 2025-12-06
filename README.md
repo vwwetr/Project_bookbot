@@ -8,9 +8,8 @@ Telegram learning bot on JavaSpringBoot.
     - Актуализировать логическую схему
 
 ## Стек:
-- 
-- 
-- 
+- https://formulae.brew.sh/cask/vagrant
+- https://formulae.brew.sh/cask/virtualbox
 - 
 
 ## Документация:

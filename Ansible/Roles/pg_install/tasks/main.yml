@@ -26,8 +26,8 @@
     group: postgres
     mode: '0600'
   notify:
-    - restart postgresql
-    - check postgresql alive
+    - Restart PostgreSQL
+    - PostgreSQL healthcheck
 
 # Развёртывание pg_hba.conf
 - name: Deploy pg_hba.conf template
@@ -37,7 +37,9 @@
     owner: postgres
     group: postgres
     mode: '0600'
-  notify: restart postgresql
+  notify: 
+  - Restart PostgreSQL
+  - PostgreSQL healthcheck
 
 # Запуск сервиса PostgreSQL и включение автозапуска
 - name: Run PostgreSQL server and make it enable on boot
@@ -46,18 +48,3 @@
     state: started
     enabled: true  # Флаг на автозапуск при развертывании
     daemon_reload: true
-
-# Health-check PostgreSQL через модуль community.postgresql
-- name: PostgreSQL Health Check
-  community.postgresql.postgresql_ping:
-    login_unix_socket: "/var/run/postgresql"
-    login_db: "postgres"
-    # Подключение происходит через локальный сокет с использованием пользователя ОС "postgres"
-    # к базе данных по умолчанию "postgres". Пароль не нужен благодаря peer authentication.
-  register: pg_ping_result
-  until: pg_ping_result.is_available | default(False) | bool
-  # Ждём, пока модуль postgresql_ping вернёт is_available=True.
-  # Условие устойчиво к неопределённому значению (default(False)).
-  retries: 20   # Увеличим количество попыток на случай медленного старта
-  delay: 3      # Если не получится, то повторится попытка через 3 секунды.
-  become_user: postgres  # Выполнение от имени системного пользователя postgres

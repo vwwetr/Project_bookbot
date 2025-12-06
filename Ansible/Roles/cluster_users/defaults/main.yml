@@ -7,4 +7,4 @@ cluster_users_common: [] # Далее - см. group_vars
 # Её можно переопределить в inventory, group_vars, host_vars, extra_vars и т.д.
 
 # Пользователи, специфичные для конкретного проекта / окружения
-#cluster_users_project: []
+cluster_users_project: []

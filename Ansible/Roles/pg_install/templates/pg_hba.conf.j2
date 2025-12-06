@@ -1,13 +1,15 @@
 # Local socket:
 # - системный пользователь postgres подключается по peer без пароля
 # - все остальные локальные пользователи — по SCRAM
-local   all             postgres                peer
-local   all             all                     scram-sha-256
 
-# TLS only hosts из internal_networks
-{% for net in internal_networks %}
-hostssl all             all     {{ net }}       scram-sha-256
+# TYPE      DATABASE        USER        ADDRESS         METHOD
+{% for rule in postgresql_pg_hba -%}
+{{ "%-7s %-15s %-15s %-23s %s" | format(
+     rule.type,
+     rule.database,
+     rule.user,
+     rule.address | default(''),
+     rule.method
+   )
+}}
 {% endfor %}
-
-# Запрет всех не-SSL подключений
-hostnossl all           all     all             reject

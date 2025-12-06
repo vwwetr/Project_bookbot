@@ -15,14 +15,20 @@ cluster_users_common:
     sudo:
       - "ALL=(ALL) NOPASSWD:ALL" # Разрешить пользователю выполнять любые команды от любого пользователя (ALL=ALL) без запроса пароля через sudo
     lock_password: true
+    targets:
+      groups:
+        - all
 
-#cluster_users_project:
-#  - name: dbbackup
-#   uid: 1101
-#    gid: 1101
-#    group: backup
-#    groups: ["backup"]
-#    shell: /bin/bash
+cluster_users_project:
+  - name: dbbackup
+    uid: 1101
+    gid: 1101
+    group: dbbackup
+    home: /var/lib/pgbackup
+    shell: /usr/sbin/nologin
+    targets:
+      groups:
+        - log
 
 #  - name: monitoring
 #    uid: 902

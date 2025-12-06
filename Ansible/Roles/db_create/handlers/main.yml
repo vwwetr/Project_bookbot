@@ -1,10 +1,13 @@
 #SPDX-License-Identifier: MIT-0
 ---
-- name: Restart PostgreSQL
-  ansible.builtin.service:
-    name: postgresql
-    state: restarted
-    become: true
+- name: Restart and healthcheck postgresql
+  block:
+    - name: Restart PostgreSQL
+      ansible.builtin.service:
+        name: "{{ postgresql_service_name }}"
+        state: restarted
+    # Проверяет, что PostgreSQL успешно запустился после перезапуска.
+    # Повторяет попытки подключения, пока сервер не станет доступным.
 
 - name: Table healthcheck
   community.postgresql.postgresql_query:

@@ -23,10 +23,10 @@
     uid: "{{ item.uid | default(omit) }}" # Если не задан, то не задавать uid
     group: "{{ item.group | default(item.name) }}" # Если задано, group, иначе совпадает с именем пользователя
     groups: "{{ item.groups | default(omit) }}" # Если не задан, то не добавлять в группу
-    append: true
+    append: "{{ (item.groups is defined) | ternary(true, omit) }}" # а???
     home: "{{ item.home | default('/home/' + item.name) }}" # Если задано, home, иначе /home/<username>
     shell: "{{ item.shell | default('/bin/bash') }}" # Если не задан, то /bin/bash
-    create_home: true
+    create_home: "{{ (item.home is defined) | ternary(true, omit) }}" # а???
     password_lock: "{{ item.lock_password | default(true) }}" # Если у пользователя явно не указано lock_password, то по умолчанию пароль должен быть заблокирован
     state: present
   loop: "{{ cluster_users_all }}" 
@@ -58,7 +58,7 @@
   loop_control:
     label: "{{ item.name }}" # Ansible вместо длинного JSON item в выводе будет показывать только человеко-читаемое значение поля name текущего элемента.
 
-# 5. Install authorized_keys
+# 5. Пробрасываем SSH ключи:
 - name: Install authorized_keys for cluster users
   ansible.posix.authorized_key:
     user: "{{ item.0.name }}" # Пользователь Linux, в чей ~/.ssh/authorized_keys будет добавлен ключ

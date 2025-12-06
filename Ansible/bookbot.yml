@@ -9,27 +9,23 @@
 #    - cluster_users
 #  vars_files:
 #    - group_vars/cluster_users.yml
+# playbooks/site.yml
 
-- name: Install and configure PostgreSQL on OS level
-  hosts: database
+- name: Base config for all nodes
+  hosts: all
   become: true
-  become_user: root
-  vars_files:
-    - group_vars/pgsql_common.yml
-  roles:
-    - pg_install
 
-- name: Configure bookbot database schema and permissions
-  hosts: database
+  roles:
+    - role: cluster_users
+      tags: ['users']   
+
+- name: Database nodes
+  hosts: db
   become: true
-  become_user: postgres
-  vars_files:
-    - group_vars/pgsql_common.yml
+
   roles:
-    - db_create
+    - role: pg_install
+      become_user: root
 
-# Привести в порядок:
-
-#- hosts: pg_db:pg_backup_primary:pg_backup_storage
-#  roles:
-#    - postgresql_backup
+    - role: db_create
+      become_user: postgres

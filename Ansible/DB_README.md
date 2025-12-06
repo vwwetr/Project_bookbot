@@ -120,7 +120,6 @@ roles/postgresql_backup/
 6. (handlers) Рестарт PostgreSQL
 7. Проверка через postgresql_ping
 8. Создание пользователей / баз
-## Ensure в ролях ansible
 ### Логика любого модуля с ensure:
 - Проверить, существует ли роль app_user.
 - Если нет — создать.
@@ -229,17 +228,6 @@ WHERE lower(trim(unaccent(title))) = lower(trim(unaccent(:title_in)));
 - `pg_dump` будем запускать скриптом на мастер-ноде, создавать локальный дамп на мастер ноде, по скрипту через `cron` каждую минуту будем отправлять на бекап-ноду и в конце удалять локальный дамп с мастера;
 ## Пользователи linux и crontab job
 - user: pgbackup
-    ```shell
-    useradd --system \
-    --home-dir /var/lib/pgbackup \
-    --shell /usr/sbin/nologin \
-    --gid pgbackup \
-    pgbackup
-    ```
-- group: pgbackup (однаимённая системная группа)
-    - `groupadd --system pgbackup`
-- type: системный пользователь, без sudo, без интерактивного SSH снаружи
-- Присутсвие на нодах:
 - node4 (основная backup-нода):
     - `install -d -o pgbackup -g pgbackup -m 700 /var/lib/pgbackup` - Домашний каталог пользователя
     - `install -d -o pgbackup -g pgbackup -m 750 /opt/pgbackup` - каталог для скриптов
@@ -258,24 +246,7 @@ WHERE lower(trim(unaccent(title))) = lower(trim(unaccent(:title_in)));
     chown pgbackup:pgbackup /var/lib/pgbackup/.pgpass
     chmod 600 /var/lib/pgbackup/.pgpass
     ```
-        - В .pgpass — доступ к PostgreSQL на Node1 под DB-пользователем backup_user.
-        - В .ssh — ключи для доступа на Node5 (и, при необходимости, на другие хосты только как storage).
-- node5 (вторичный backup)
-    - Цель: только приймать и хранить копии бэкапов из Node4.
-    - Пользователь и группа - по аналогии с node4
-        - Желательно, чтобы uid/gid совпадали с Node4 (Ansible это легко обеспечивает).
-    - Каталоги для хранения:
-        - `install -d -o pgbackup -g pgbackup -m 750 /var/backups/postgresql`
-        - `install -d -o pgbackup -g pgbackup -m 750 /var/backups/postgresql/bookbot_db`
-    - На Node5 .ssh/authorized_keys будет принимать ключ от Node4/pgbackup.
-        - `install -d -o pgbackup -g pgbackup -m 700 /var/lib/pgbackup`
-        - `install -d -o pgbackup -g pgbackup -m 700 /var/lib/pgbackup/.ssh`
-    - На Node5 cron-джобов можно не заводить:
-        - он используется как passive storage;
-        - rsync/scp выполняется с Node4 под pgbackup, подключаясь к pgbackup@node5.
-- DB_node (node1)
-    - для симметрии (и возможных локальных операций), допустимо создать его так же, как на Node4/Node5:
-    - pgbackup не должен иметь прав на каталог с физическими данными PostgreSQL (/var/lib/pgsql/data или что там у твоего контейнера).
+ - pgbackup не должен иметь прав на каталог с физическими данными PostgreSQL (/var/lib/pgsql/data или что там у твоего контейнера).
 - Права и ограничения в целом:
     - Для пользователя pgbackup по best practice:
         - Нет sudo, нет прав на изменение системных конфигов.
@@ -290,14 +261,15 @@ WHERE lower(trim(unaccent(title))) = lower(trim(unaccent(:title_in)));
 - Добавить в таску роли db_create:
     - Создаём отдельную групповую роль без логина, например:
         - `CREATE ROLE bookbot_backup_role NOLOGIN;` Эта роль описывает, какие привилегии нужны для чтения данных для логического бэкапа.
-- Сделал пользака на нодах, нужно добавить доступ ему в базу (роль, и так далее)
-    - Групповая роль для бэкапов
-    - Логин-пользователь для бэкапа
-    - Чтобы права не отваливались на новых таблицах (так в базу же добавить, не?)
-    - Если у тебя PostgreSQL 14+ и нужно сразу кластерно (что это???)
-    - Почему не использовать существующие роли (можно же дать ограниченные права в рамках имеющейся групповой роли, не?)
-    - Связка с ОС-пользователем (чтобы было понятно, как стыкуется с предыдущим ответом)
-## Готовые роли по pg_backup
-    - Роль для настройки cron-джоба регулярных полных бэкапов PostgreSQL через pg_dump:
-        - https://galaxy.semaphoreui.com/views/manics/ansible-role-postgresql-backup/overview
-        - https://github.com/ome/ansible-role-postgresql-backup?utm_source=chatgpt.com
+
+## Шаги по db_backup role
+1. Определиться с пользователем
+    - Присутсвтвие на нодах (Нода логирования)
+    - Права
+    - Роль в базе
+2. Откорректировать роль с пользаками
+3. Откорректировать роль с базой данных
+4. Написать роль с бекапом
+5. Настроить скрипт
+6. Zabbix, fluentd, Fluentbit?
+7. Закрыть доступ в базу (кроме localhost и log-node)

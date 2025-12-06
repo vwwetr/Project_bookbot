@@ -1,31 +1,51 @@
 ---
 # Contain a list of common variables for db_roles
 
-# db_create role vars
-postgresql_db_name: "learningbot"
-
-app_group_role: "bookbot"
-app_user: "app"
-app_user_password: "app"
-
-readonly_user: "readonly"
-readonly_user_password: "readonly"
-
 # Пакеты PostgreSQL из стандартных репозиториев CentOS Stream 10
 postgresql_packages:
   - postgresql-server
   - postgresql-contrib
   - python3-psycopg2   # для community.postgresql.* модулей
 
-# Директория данных PostgreSQL (стандартная для системного PostgreSQL на CentOS):
+# Системные параметры:
+## Директория данных PostgreSQL (стандартная для системного PostgreSQL на CentOS):
 postgresql_data_dir: "/var/lib/pgsql/data"
-
-# Имя systemd-сервиса PostgreSQL
+postgresql_unix_socket_dir: "/var/run/postgresql" 
+## Имя systemd-сервиса PostgreSQL
 postgresql_service_name: "postgresql"
-
 # Нужно ли выполнять initdb через postgresql-setup
 postgresql_initdb: true
 
+# Параметры базы данных:
+postgresql_db_name: "learningbot"
+## Роли приложения
+app_group: "bookbot"
+app_group_role: "bookbot"
+## Пользователь приложения
+app_user: "app"
+app_user_password: "app"
+## Пользователь для логических бэкапов
+backup_db_user: "pg_backup"
+## Пользователь для чтения
+readonly_user: "readonly"
+readonly_user_password: "readonly"
+
+# Параметры подключения к базе данных:
+postgresql_login_name: "postgres"
+postgresql_cluster_subnet: "172.17.177.0/24"
+backup_node_ip_cidr: "172.17.177.211/32"
+## Базовые правила, которые общие для всех инстансов PostgreSQL
+postgresql_pg_hba_base:
+  # Локальные подключения
+  - { type: "local", database: "all",              user: "postgres",      address: "",             method: "peer" }
+  - { type: "local", database: "all",              user: "all",           address: "",             method: "peer" }
+  # Loopback IPv4/IPv6
+  - { type: "host",  database: "all",              user: "all",           address: "127.0.0.1/32", method: "{{ postgresql_auth_method }}" }
+  - { type: "host",  database: "all",              user: "all",           address: "::1/128",      method: "{{ postgresql_auth_method }}" }
+  # Application:
+  - { type: "host",  database: "learningbot",      user: "app_user",      address: "",      method: "{{ postgresql_auth_method }}" }
+  # dbbackup:
+  - { type: "host",  database: "learningbot",      user: "dbbackup",      address: "172.17.177.211/32",      method: "{{ postgresql_auth_method }}" }
 # Параметры для pg_hba.conf.j2
 internal_networks:
   - "127.0.0.1/32"
