@@ -1,19 +1,63 @@
 ---
 # Contain a list of common variables for db_roles
 
-# Пакеты PostgreSQL из стандартных репозиториев CentOS Stream 10
+# Пакеты PostgreSQL из репозиториев PGDG
+postgresql_install_source: "pgdg"
+postgresql_version: "16"
 postgresql_packages:
-  - postgresql-server
-  - postgresql-contrib
-  - python3-psycopg2   # для community.postgresql.* модулей
+  - "postgresql{{ postgresql_version }}"          # клиент
+  - "postgresql{{ postgresql_version }}-server"   # сервер
+  - "postgresql{{ postgresql_version }}-contrib"  # contrib
+  - python3-psycopg2                              # для Ansible-модулей
+pgdg_repo_el: "EL-10"
+pgdg_repo_arch_map:
+  x86_64:  "{{ pgdg_repo_el }}-x86_64"
+  aarch64: "{{ pgdg_repo_el }}-aarch64"
+pgdg_repo_url: "https://download.postgresql.org/pub/repos/yum/reporpms/{{ pgdg_repo_arch_map[ansible_architecture] }}/pgdg-redhat-repo-latest.noarch.rpm"
 
 # Системные параметры:
-## Директория данных PostgreSQL (стандартная для системного PostgreSQL на CentOS):
-postgresql_data_dir: "/var/lib/pgsql/data"
-postgresql_unix_socket_dir: "/var/run/postgresql" 
+## Директории данных PostgreSQL:
+postgresql_instance_name: "app_bot"
+postgresql_data_dir: "/var/lib/pgsql/{{ postgresql_version }}/data"
+postgresql_backup_dir: "/var/backups/postgresql/{{ postgresql_instance_name }}"
+postgresql_backup_log_dir: "/var/log/pgbackup/{{ postgresql_instance_name }}"
+postgresql_script_dir: "/opt/postgresql/{{ postgresql_instance_name }}/sql"
+postgresql_unix_socket_dir: "/var/run/postgresql"
+postgresql_wal_archive_dir: "/var/lib/pgsql/wal_archive/{{ postgresql_instance_name }}"
+## Logging
+postgres_log_destination: "stderr"
+postgres_logging_collector: "on"
+postgres_log_line_prefix: "%m [%p] "
+postgres_log_directory: "pg_log"        # Итоговый путь: /var/lib/pgsql/data/pg_log # Каталог логов формирует я в jinja2 как ОТНОСИТЕЛЬНЫЙ путь от postgresql_data_dir
+postgres_log_filename: "postgresql-%Y-%m-%d_%H%M%S.log"
+postgres_log_rotation_age: "1d"
+postgres_log_rotation_size: "100MB"     # Ротация логов по размеру
+postgres_log_truncate_on_rotation: "on" # При ротации старый файл перезаписывать (а не дописывать)
+postgres_log_connections: "on"          # логировать подключения
+postgres_log_disconnections: "on"       # логировать отключения
+postgres_log_checkpoints: "on"          # логировать чекпоинты
+## Hardware
+postgres_shared_buffers: "256MB"
+postgres_work_mem: "4MB"
+postgres_maintenance_work_mem: "64MB"
+postgres_effective_cache_size: "512MB"
+## SSL (пути завязаны на data_dir)
+postgres_ssl: false
+postgres_ssl_cert: "{{ postgresql_data_dir }}/server.crt"
+postgres_ssl_key: "{{ postgresql_data_dir }}/server.key"
+postgres_ssl_ca: "{{ postgresql_data_dir }}/rootCA.crt"
+## Locale & timezone
+postgres_timezone: "Europe/Amsterdam"
+postgres_lc_messages: "en_US.UTF-8"
+postgres_lc_numeric:  "en_US.UTF-8"
+postgres_lc_time:     "en_US.UTF-8"
+postgres_lc_monetary: "en_US.UTF-8"
+
+# Дополнительные параметры, которые можно пробросить в postgresql.conf из шаблона
+postgres_custom_parameters: {}
 ## Имя systemd-сервиса PostgreSQL
-postgresql_service_name: "postgresql"
-# Нужно ли выполнять initdb через postgresql-setup
+postgresql_service_name: "postgresql-{{ postgresql_version }}"
+## Нужно ли выполнять initdb через postgresql-setup
 postgresql_initdb: true
 
 # Параметры базы данных:
@@ -22,56 +66,40 @@ postgresql_db_name: "learningbot"
 app_group: "bookbot"
 app_group_role: "bookbot"
 ## Пользователь приложения
-app_user: "app"
-app_user_password: "app"
+app_user: "app_user"
+app_user_password: "app_user"
 ## Пользователь для логических бэкапов
-backup_db_user: "pg_backup"
+backup_db_user: "dbbackup"
 ## Пользователь для чтения
 readonly_user: "readonly"
 readonly_user_password: "readonly"
+
 
 # Параметры подключения к базе данных:
 postgresql_login_name: "postgres"
 postgresql_cluster_subnet: "172.17.177.0/24"
 backup_node_ip_cidr: "172.17.177.211/32"
 ## Базовые правила, которые общие для всех инстансов PostgreSQL
-postgresql_pg_hba_base:
+postgresql_pg_hba:
   # Локальные подключения
-  - { type: "local", database: "all",              user: "postgres",      address: "",             method: "peer" }
-  - { type: "local", database: "all",              user: "all",           address: "",             method: "peer" }
+  - { type: "local", database: "all",              user: "postgres",        address: "",                       method: "peer" }
+  - { type: "local", database: "all",              user: "postgres",        address: "",                       method: "{{ postgresql_auth_method }}" }
+  - { type: "host",  database: "all",              user: "postgres",        address: "192.168.56.1/32",        method: "{{ postgresql_auth_method }}" }
   # Loopback IPv4/IPv6
-  - { type: "host",  database: "all",              user: "all",           address: "127.0.0.1/32", method: "{{ postgresql_auth_method }}" }
-  - { type: "host",  database: "all",              user: "all",           address: "::1/128",      method: "{{ postgresql_auth_method }}" }
+  - { type: "host",  database: "all",              user: "all",             address: "127.0.0.1/32",           method: "{{ postgresql_auth_method }}" }
+  - { type: "host",  database: "all",              user: "all",             address: "::1/128",                method: "{{ postgresql_auth_method }}" }
   # Application:
-  - { type: "host",  database: "learningbot",      user: "app_user",      address: "",      method: "{{ postgresql_auth_method }}" }
+  - { type: "host",  database: "learningbot",      user: "app_user",        address: "192.168.56.1/32",        method: "{{ postgresql_auth_method }}" }
   # dbbackup:
-  - { type: "host",  database: "learningbot",      user: "dbbackup",      address: "172.17.177.211/32",      method: "{{ postgresql_auth_method }}" }
-# Параметры для pg_hba.conf.j2
+  - { type: "host",  database: "all",              user: "dbbackup",        address: "192.168.56.213/32",      method: "{{ postgresql_auth_method }}" }
+## Параметры для pg_hba.conf.j2
 internal_networks:
   - "127.0.0.1/32"
   - "10.0.0.0/8"
   - "192.168.0.0/16"
+postgresql_app_host_cidr: "192.168.56.1/32"
 postgres_port: 5432
 postgres_listen: "*"
 postgres_max_connections: 100
+postgresql_auth_method: "scram-sha-256"
 postgres_password_encryption: "scram-sha-256"
-
-# SSL (пути завязаны на data_dir)
-postgres_ssl: false
-postgres_ssl_cert: "{{ postgresql_data_dir }}/server.crt"
-postgres_ssl_key: "{{ postgresql_data_dir }}/server.key"
-postgres_ssl_ca: "{{ postgresql_data_dir }}/rootCA.crt"
-
-# Логирование
-postgres_log_destination: "stderr"
-postgres_logging_collector: "on"
-postgres_log_line_prefix: "%m [%p] "
-
-# Hardware
-postgres_shared_buffers: "256MB"
-postgres_work_mem: "4MB"
-postgres_maintenance_work_mem: "64MB"
-postgres_effective_cache_size: "512MB"
-
-# Дополнительные параметры, которые можно пробросить в postgresql.conf из шаблона
-postgres_custom_parameters: {}

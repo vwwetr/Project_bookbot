@@ -83,7 +83,7 @@ Esc, wq!, Enter - выйти с сохранением
 Запуск (из директории /Ansible/):
 
 ```bash
-ansible-playbook bootstrap.yml -u vagrant --private-key=~/.vagrant.d/insecure_private_key --tags users --ask-vault-pass
+ansible-playbook bookbot.yml -u vagrant --private-key=~/.vagrant.d/insecure_private_key --tags users --ask-vault-pass
 ```
 
 Параметры:

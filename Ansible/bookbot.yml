@@ -2,24 +2,15 @@
 # Bookboot #
 ###########
 ---
-# Настроить
-#- name: Set up cluster users
-#  hosts: all
-#  roles:
-#    - cluster_users
-#  vars_files:
-#    - group_vars/cluster_users.yml
-# playbooks/site.yml
-
-- name: Base config for all nodes
-  hosts: all
+- name: Add needed users to all cluster
+  hosts: cluster
   become: true
 
   roles:
     - role: cluster_users
       tags: ['users']   
 
-- name: Database nodes
+- name: Set up PostgreSQL, create DB and give permissons to users on Database node
   hosts: db
   become: true
 
@@ -29,3 +20,11 @@
 
     - role: db_create
       become_user: postgres
+
+#- name: Set up and turn on backup on Logging nodes
+#  hosts: log
+#  become: true
+
+#  roles:
+#    - role: db_backup
+#      become_user: ansible

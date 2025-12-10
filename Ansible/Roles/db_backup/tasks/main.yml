@@ -10,50 +10,11 @@
   mode: '0750'
 
 # crontab play
+- name: Configure crontab user
 # healthcheck crontab play
 
-#Когда будешь писать Ansible-роль, логика примерно такая:
+# Нода, где выполняется pg_dump + cron (Логирование)
 
-  #role: pgbackup-os-user
-  #создаёт группу/пользователя pgbackup;
-  #создаёт базовые каталоги с нужными правами (с учётом того, backup-нода это или storage-нода);
-  #разворачивает .ssh, .pgpass.
-
-  #role: pgbackup-scripts
-  #копирует на Node4 скрипты в /opt/pgbackup;
-  #создаёт cron для пользователя pgbackup на Node4;
-  #на Node5 не создаёт cron, только каталоги.
-
-  # roles/postgresql_backup/tasks/main.yml
-
-# Идея: одна роль крутится на нескольких типах нод, а поведение управляется группами/переменными.
-- name: Create pgbackup user and basic dirs
-  include_tasks: user.yml
-
-- name: Create common backup directories
-  include_tasks: dirs.yml
-
-# Нода, где выполняется pg_dump + cron (Node4)
 - name: Configure backup host (scripts + cron)
   include_tasks: scripts.yml
   when: "'pg_backup_primary' in group_names"
-
-- name: Configure cron on backup host
-  include_tasks: cron.yml
-  when: "'pg_backup_primary' in group_names"
-
-# Нода-хранилище (Node5)
-- name: Configure backup storage host
-  include_tasks: storage.yml
-  when: "'pg_backup_storage' in group_names"
-
-# В инвентаре:
-
-  #[pg_db]
-  #node1-db
-
-  #[pg_backup_primary]
-  #node4-monitoring
-
-  #[pg_backup_storage]
-  #node5-monitoring

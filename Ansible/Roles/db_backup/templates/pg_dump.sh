@@ -9,7 +9,7 @@ logger "[PG_BACKUP] Скрипт pg_backup.sh запущен пользоват�
 export HOME=/home/vagrant # Если хочу шаблонизировать в jinja, то надо засунуть в какие-то переменные
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-PGPASSWORD='vagrant'; export PGPASSWORD # Если хочу шаблонизировать в jinja, то надо засунуть в какие-то переменные
+PGPASSWORD=''; export PGPASSWORD # Если хочу шаблонизировать в jinja, то надо засунуть в какие-то переменные
 
 # Хосты # Если хочу шаблонизировать в jinja, то надо засунуть в какие-то переменные
 dbHost= 
@@ -19,7 +19,6 @@ backupHost=
 pathB=/mnt/backup
 dbUser=
 database=
-
 dump_name="pgsql_$(TZ='Europe/Moscow' date '+%Y-%m-%d_%H-%M').dump.gz"
 dump_path="/tmp/${dump_name}"
 

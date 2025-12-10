@@ -113,6 +113,7 @@ roles/postgresql_backup/
 ## Порядок выполнения db_role
 Роль должна запускаться в такой последовательности:
 1. Установка PostgreSQL (pgdg)
+    - Мы ставим PostgreSQL через официальный репозиторий PGDG, чтобы жёстко контролировать версию (например, именно 16), а не зависеть от того, какую сборку и релиз предлагает дистрибутив. Это даёт предсказуемое поведение и одинаковую версию PostgreSQL на всех средах (dev/stage/prod), независимо от версии ОС. Кроме того, PGDG быстрее получает патчи безопасности и обновления, чем стандартные репозитории RHEL/CentOS.
 2. initdb
 3. Копирование TLS файлов
 4. Настройка postgresql.conf
@@ -229,14 +230,14 @@ WHERE lower(trim(unaccent(title))) = lower(trim(unaccent(:title_in)));
 ## Пользователи linux и crontab job
 - user: pgbackup
 - node4 (основная backup-нода):
-    - `install -d -o pgbackup -g pgbackup -m 700 /var/lib/pgbackup` - Домашний каталог пользователя
+    - `install -d -o pgbackup -g pgbackup -m 700 /var/lib/pgbackup` - Домашний каталог пользователя 
     - `install -d -o pgbackup -g pgbackup -m 750 /opt/pgbackup` - каталог для скриптов
     - `install -d -o pgbackup -g pgbackup -m 750 /var/backups/postgresql` - каталог для бекапов
     - `install -d -o pgbackup -g pgbackup -m 750 /var/backups/postgresql/bookbot_db` - каталог для бекапов (зачем?)
     - Права:
         - каталоги: 750 (rwxr-x---), владелец pgbackup:pgbackup;
         - файлы-дампы: по умолчанию 640 (rw-r-----), владелец pgbackup:pgbackup.
-    - Каталог дляч логов бекап-скриптов:
+    - Каталог для логов бекап-скриптов:
         - `install -d -o pgbackup -g pgbackup -m 750 /var/log/pgbackup`
         - Логи вида /var/log/pgbackup/pgdump-bookbot_db.log с правами 640.
     - SSH и .pgpass
@@ -246,7 +247,7 @@ WHERE lower(trim(unaccent(title))) = lower(trim(unaccent(:title_in)));
     chown pgbackup:pgbackup /var/lib/pgbackup/.pgpass
     chmod 600 /var/lib/pgbackup/.pgpass
     ```
- - pgbackup не должен иметь прав на каталог с физическими данными PostgreSQL (/var/lib/pgsql/data или что там у твоего контейнера).
+- pgbackup не должен иметь прав на каталог с физическими данными PostgreSQL (/var/lib/pgsql/data или что там у твоего контейнера).
 - Права и ограничения в целом:
     - Для пользователя pgbackup по best practice:
         - Нет sudo, нет прав на изменение системных конфигов.
@@ -261,15 +262,36 @@ WHERE lower(trim(unaccent(title))) = lower(trim(unaccent(:title_in)));
 - Добавить в таску роли db_create:
     - Создаём отдельную групповую роль без логина, например:
         - `CREATE ROLE bookbot_backup_role NOLOGIN;` Эта роль описывает, какие привилегии нужны для чтения данных для логического бэкапа.
-
 ## Шаги по db_backup role
-1. Определиться с пользователем
-    - Присутсвтвие на нодах (Нода логирования)
+1. Определиться с пользователем (ПРОВЕРИТЬ ВСЕХ)
+    - Присутсвтвие на нодах `(+)`
     - Права
     - Роль в базе
-2. Откорректировать роль с пользаками
-3. Откорректировать роль с базой данных
+2. Откорректировать роль с пользаками `(+)`
+3. Откорректировать роль с базой данных `(+)`
 4. Написать роль с бекапом
 5. Настроить скрипт
-6. Zabbix, fluentd, Fluentbit?
-7. Закрыть доступ в базу (кроме localhost и log-node)
+5.1 Проверить наличие в pgsql_common.yml переменных из jinja файлов PSGQL. `(+)`
+6. Закрыть доступ в базу (кроме localhost и log-node) `(+)`
+6. Настроить GRANTы нужным пользователям.
+8. Надо один раз проверить на практике: `(+)`
+    - включить логирование подключений на PostgreSQL (log_connections = on); `(+)`
+    - сделать тестовое подключение из приложения или просто psql с Mac; `(+)`
+    - посмотреть в логах, с какого IP пришёл коннект.`(+)`
+9. Сетевой уровень на PostgreSQL-ноде: `(+)`
+   - postgresql.conf: listen_addresses = '*' или хотя бы адрес интерфейса в сети 192.168.56.0/24 `(+)`;
+   - firewall/iptables/nftables: открыть порт 5432 для нужных IP (192.168.56.1 и 192.168.56.213) `(+)`;
+   - SELinux (если включён): либо корректный контекст/политики, либо permissive/enforcing с нужной политикой. `(+)`
+   - Проверить общение по TCP между нодами `(+)`
+## Настройка конфигурационных файлов
+- В шаблонах конфигурации СУБД и сервисов я использую фильтр default() в Jinja2, даже если сейчас все переменные заданы. Это делается для:
+    - Устойчивости ролей к частично заполненным переменным;
+    - Возможности безопасно переиспользовать роль в разных окружениях (dev/stage/prod) с разным набором vars;
+    - Обратной совместимости при эволюции роли — добавление новых параметров не ломает существующие инвентори.
+## PostgereSQL debug
+    - Статус сервиса с логом:
+    sudo systemctl status postgresql-16.service -l
+    - Последние строки журнала:
+    sudo journalctl -xeu postgresql-16.service | tail -n 50
+    - `/var/lib/pgsql/16/data/pg_log`
+

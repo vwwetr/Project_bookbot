@@ -8,8 +8,10 @@ Telegram learning bot on JavaSpringBoot.
     - Актуализировать логическую схему
 
 ## Стек:
-- https://formulae.brew.sh/cask/vagrant
-- https://formulae.brew.sh/cask/virtualbox
+- Vagrant (version) + Virtualbox (version) - Виртуализация нод кластера;
+    - vagrant plugin install vagrant-vbguest (на хосте) для синхронизации времени хоста и времени нод;
+    - https://formulae.brew.sh/cask/vagrant
+    - https://formulae.brew.sh/cask/virtualbox
 - 
 
 ## Документация:
@@ -61,8 +63,8 @@ sudo firewall-cmd --reload
 - Monitoring
 - Logs
 
-### Для приложения:
-# Нормализация заголовка книги в Java Spring Boot + PostgreSQL
+## Для приложения:
+### Нормализация заголовка книги в Java Spring Boot + PostgreSQL
 
 ## 1. Поле `normalizedTitle` в сущности `Book`
 
@@ -145,3 +147,16 @@ group_vars/<groupname>.yml → переменные для группы [<groupn
 group_vars/<groupname>/vars.yml → то же самое, только в подкаталоге;
 
 аналогично с host_vars/<hostname>.yml — переменные для конкретного хоста.
+
+### Сетевой конфиг проекта
+- В проекте эмулируется отдельный сегмент сети с помощью Vagrant + VirtualBox: фиксируется подсеть 192.168.56.0/24 через config.vm.network "private_network". VirtualBox при первом создании host-only сети назначает IP хоста, как правило 192.168.56.1, и далее Vagrant эту сеть переиспользует, пока не менется подсеть.
+- Поэтому в рамках одного Mac’а и одной подсети 192.168.56.1 считается стабильным адресом хоста и дополнительно валидируется на нодах через ip route и ping шлюза.
+- При этом, понимаются ограничения: если изменить конфигурацию VirtualBox или перенести ВМ на другой хост, адрес может поменяться. Поэтому в проде есть смысл вынести IP в инфраструктурный конфиг (Terraform/Ansible) или в DNS/Service Discovery.
+
+## Безопасность
+### SELinux
+[Статейка на хабре:](https://habr.com/ru/companies/kingservers/articles/209644/)
+- Текущий статус: enforcing;
+- Основные задачи (в режиме enforcing):
+    - Проверить, что PostgreSQL, Nginx, Docker/K8s стартуют и работают без AVC-ошибок.
+    - Если что-то ломается — смотреть audit.log, править контексты/boolean’ы/политику.

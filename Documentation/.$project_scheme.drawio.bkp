@@ -1,6 +1,6 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/28.2.8 Chrome/140.0.7339.240 Electron/38.4.0 Safari/537.36" version="28.2.8" pages="2">
   <diagram name="Cluster scheme" id="ZpGOQEVKVNA0ghb57mVW">
-    <mxGraphModel dx="3390" dy="1448" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="2404" dy="891" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -274,10 +274,13 @@
           <mxGeometry x="647" y="510" width="260" height="100" as="geometry" />
         </mxCell>
         <mxCell id="kiYP-ZSzkKLJ5z3ouGvI-1" value="pg_dump" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="910" y="1000" width="110" height="30" as="geometry" />
+          <mxGeometry x="1000" y="1370" width="110" height="30" as="geometry" />
         </mxCell>
         <mxCell id="kiYP-ZSzkKLJ5z3ouGvI-2" value="pg_restore" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="910" y="1030" width="110" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="TL_Djx1T3vG-fspi3fid-1" value="JavaKeyStore (TLS)" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="610" y="1400" width="120" height="60" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
