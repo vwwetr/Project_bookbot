@@ -1,12 +1,21 @@
-## Lightweight Git Workflow + Jira Integration
+## Lightweight Git Workflow + Jira Integration description
 
-Этот проект использует простой Git workflow: одна основная ветка
-(`main`) и короткие feature-ветки под задачи.\
-Jira автоматически закрывает задачи при merge Pull Request благодаря
-правилу:
+- Этот проект использует упрощенный Git workflow: ветка разработки `develop`, и прод ветка `master`. Без фичей, хотфиксов и релизов.
+- Удаленный GitHub репозиторий интеграирован с Jira (канбан проекта), которая автоматически закрывает задачи при merge Pull Request благодаря настроенной автоматизации.
+
+### Настройка локального Git
+- ~/.gitconfig - общий конфиг для всех локальных репозиториев конкретного пользователя
+``` bash
+git config --list --show-origin
+git config --list # Проверка используемых конфигураций
+git config --global iniy.defaultBranch develop
+git branch develop
+git flow init
+git push -u origin develop
+``` 
 
 ## Pull request merged → Transition issue to Done
-## 1. Обновить основную ветку
+### 1. Обновить основную ветку
 
 Перейти в `main` и скачать последние изменения:
 
@@ -15,7 +24,7 @@ git checkout main
 git pull origin main
 ```
 
-## 2. Создать короткую feature-ветку
+### 2. Создать короткую feature-ветку
 
 Создать новую ветку под задачу (короткое имя без тикета Jira):
 

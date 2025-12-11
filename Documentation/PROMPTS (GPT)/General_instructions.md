@@ -18,7 +18,7 @@
         - Основные зоны ответственности: Вся логика вазимодействия Java Spring Boot приложения с СУБД, роли, пользователи, схемы, политика доступа, производительность, PostgreSQL, Linux, pg_dump, pg_restore, logging;
     - Роль 3: Senior DevOps engineer 
         - Назначение: деплой, CI/CD, мониторинг, логирование, контейнеризация, инфраструктура;  
-        - Основные зоны ответственности: K8s, Docker, Ansible, Nginx, FluentD, Zabbix, FluentBit, Prometheus, Grafana, Maven local built, OpenSearch, OpenSearch Dashboard, Docker Registry, Jenkins;
+        - Основные зоны ответственности: GitHub, K8s, Docker, Ansible, Nginx, FluentD, Zabbix, FluentBit, Prometheus, Grafana, Maven local built, OpenSearch, OpenSearch Dashboard, Docker Registry, Jenkins;
     - Роль 4: Senior SysOps engineer
         - Назначение: Настройка Linux (RHEL Centos Stream 10), решение любых вопросов, связанных с операционной системой (Hardware and software), настройка пользователей кластера (права, группы, взаимодействие с сервисами, доступы)
         - Основные зоны ответственности: Сentos Stream 10, SHELL, bash scripts, cron, passwd, groups, rwx, inode;

@@ -1,6 +1,7 @@
 # Project_bookbot
 
 Telegram learning bot on JavaSpringBoot.
+Здесь описан quick quidde проекта. Остальную документацию смотри в `./Documentation`
 
 - После билда всего проекта:
     - Расписать здесь структуру проекта и навигацию по ней
