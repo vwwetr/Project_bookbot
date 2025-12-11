@@ -3,6 +3,5 @@
 .vagrant
 .vscode
 Someshit/
-Documentation/.$project_scheme.drawio.bkp
 Ansible/group_vars/all/vault.yml
 Ansible/logs
