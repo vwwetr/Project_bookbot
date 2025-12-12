@@ -66,3 +66,4 @@ git push
 - После ревью и проверки — выполнить merge PR в master;
 - Пометить релиз тегом (например, v1.0.0) и обновить статус задач в Jira.
     - Порядок присвоения версий - см. `Lightweight Git Workflow + Jira Integration description` в шапке этого readme.
+    
