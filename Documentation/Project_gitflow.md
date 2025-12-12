@@ -12,6 +12,9 @@ git config --global iniy.defaultBranch develop
 git branch develop
 git flow init
 git push -u origin develop
+git push --force-with-lease
+git branch --unset-upstream # Отвязаться от удаленной ветки
+git branch --set-upstream-to=origin/master master # Привязать локальный master к удаленному
 ``` 
 
 ## Pull request merged → Transition issue to Done
