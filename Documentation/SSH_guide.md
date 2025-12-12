@@ -74,7 +74,6 @@ sudo firewall-cmd --permanent --add-port=80/tcp
 sudo firewall-cmd --reload
 ```
 **Настраиваем права:**
-
 **На ansible-master:**
 ```sh
 sudo chmod 700 ~/keys
