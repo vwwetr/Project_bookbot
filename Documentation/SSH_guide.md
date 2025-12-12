@@ -33,7 +33,7 @@ sudo chmod 700 /home/ansible/
 ```
 **В sshd_config** #???
 ```sh
-PasswordAuthentication no #???
+PasswordAuthentication no
 PermitRootLogin no #???
 ```
 **В /etc/sudoers.d/99-ansible:**
