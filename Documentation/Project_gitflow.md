@@ -9,12 +9,32 @@
 git config --list --show-origin
 git config --list # Проверка используемых конфигураций
 git config --global iniy.defaultBranch develop
-git branch develop
-git flow init
-git push -u origin develop
-git push --force-with-lease
+git branch -a # Отобразить лоакальные и удаленные ветки
+git flow init 
+git push -u origin develop 
+git push --force-with-lease # 
 git branch --unset-upstream # Отвязаться от удаленной ветки
 git branch --set-upstream-to=origin/master master # Привязать локальный master к удаленному
+git rev-parse develop # Выведет хэш коммита, на который в данный момент указывает ветка develop.
+
+git log master..develop --oneline # Если вывода нет вообще, значит в develop нет уникальных коммитов относительно master
+    git log develop..master --oneline # Если и здесь пусто, значит ветки полностью совпадают по истории.
+
+git branch -d backup_origin_main
+git branch -d backup_origin_master
+git branch -d backup_origin_develop
+
+git checkout develop
+git checkout -b feature/xyz
+# работа, коммиты
+git push -u origin feature/xyz
+# потом PR / merge feature/xyz -> develop
+
+
+git checkout master
+git merge --no-ff develop
+git tag -a v0.4.5 -m "Release v0.4.5"
+git push origin master --tags
 ``` 
 
 ## Pull request merged → Transition issue to Done
