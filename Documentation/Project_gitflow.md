@@ -7,6 +7,7 @@
         - `v.0.1.0`: Minor (for example, "build PostgreSQL database);
         - `v.1.0.0`: Major (for example: first project succes build)
 - Удаленный GitHub репозиторий интегрирован с Jira (канбан проекта), которая автоматически закрывает задачи при merge Pull Request благодаря настроенной автоматизации.
+    - Настройки автоматизации: см. `./Documentation/Develop commits automation with tasks.png` и `./Documentation/Develop commits automation with tasks.png`
 
 ### Git config settings
 - ~/.gitconfig - общий конфиг для всех локальных репозиториев конкретного пользователя
@@ -66,4 +67,3 @@ git push
 - После ревью и проверки — выполнить merge PR в master;
 - Пометить релиз тегом (например, v1.0.0) и обновить статус задач в Jira.
     - Порядок присвоения версий - см. `Lightweight Git Workflow + Jira Integration description` в шапке этого readme.
-    
