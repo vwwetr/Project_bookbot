@@ -161,3 +161,5 @@ group_vars/<groupname>/vars.yml → то же самое, только в под
 - Основные задачи (в режиме enforcing):
     - Проверить, что PostgreSQL, Nginx, Docker/K8s стартуют и работают без AVC-ошибок.
     - Если что-то ломается — смотреть audit.log, править контексты/boolean’ы/политику.
+
+https://habr.com/ru/articles/815479/

@@ -22,6 +22,8 @@ postgresql_data_dir: "/var/lib/pgsql/{{ postgresql_version }}/data"
 postgresql_backup_dir: "/var/backups/postgresql/{{ postgresql_instance_name }}"
 postgresql_backup_log_dir: "/var/log/pgbackup/{{ postgresql_instance_name }}"
 postgresql_script_dir: "/opt/postgresql/{{ postgresql_instance_name }}/sql"
+postgresql_dump_name: "{{ postgresql_instance_name }}_db_dump"
+postgresql_dump_ts_format: "%Y-%m-%d_%H%M%S"
 postgresql_unix_socket_dir: "/var/run/postgresql"
 postgresql_wal_archive_dir: "/var/lib/pgsql/wal_archive/{{ postgresql_instance_name }}"
 ## Logging
@@ -67,31 +69,31 @@ app_group: "bookbot"
 app_group_role: "bookbot"
 ## Пользователь приложения
 app_user: "app_user"
-app_user_password: "app_user"
 ## Пользователь для логических бэкапов
-backup_db_user: "dbbackup"
+backup_db_user: "db_backup"
 ## Пользователь для чтения
-readonly_user: "readonly"
-readonly_user_password: "readonly"
-
+readonly_user: "read_only"
 
 # Параметры подключения к базе данных:
 postgresql_login_name: "postgres"
 postgresql_cluster_subnet: "172.17.177.0/24"
 backup_node_ip_cidr: "172.17.177.211/32"
+db_host: "{{ hostvars['Database'].ansible_host | default('Database') }}"
+log_host: "{{ hostvars['Logging'].ansible_host | default('Logging') }}"
+
 ## Базовые правила, которые общие для всех инстансов PostgreSQL
 postgresql_pg_hba:
   # Локальные подключения
-  - { type: "local", database: "all",              user: "postgres",        address: "",                       method: "peer" }
-  - { type: "local", database: "all",              user: "postgres",        address: "",                       method: "{{ postgresql_auth_method }}" }
-  - { type: "host",  database: "all",              user: "postgres",        address: "192.168.56.1/32",        method: "{{ postgresql_auth_method }}" }
+  - { type: "local", database: "all",              user: "postgres",         address: "",                       method: "peer" }
+  - { type: "local", database: "all",              user: "postgres",         address: "",                       method: "{{ postgresql_auth_method }}" }
+  - { type: "host",  database: "all",              user: "postgres",         address: "192.168.56.1/32",        method: "{{ postgresql_auth_method }}" }
   # Loopback IPv4/IPv6
-  - { type: "host",  database: "all",              user: "all",             address: "127.0.0.1/32",           method: "{{ postgresql_auth_method }}" }
-  - { type: "host",  database: "all",              user: "all",             address: "::1/128",                method: "{{ postgresql_auth_method }}" }
+  - { type: "host",  database: "all",              user: "all",              address: "127.0.0.1/32",           method: "{{ postgresql_auth_method }}" }
+  - { type: "host",  database: "all",              user: "all",              address: "::1/128",                method: "{{ postgresql_auth_method }}" }
   # Application:
-  - { type: "host",  database: "learningbot",      user: "app_user",        address: "192.168.56.1/32",        method: "{{ postgresql_auth_method }}" }
+  - { type: "host",  database: "learningbot",      user: "app_user",         address: "192.168.56.1/32",        method: "{{ postgresql_auth_method }}" }
   # dbbackup:
-  - { type: "host",  database: "all",              user: "dbbackup",        address: "192.168.56.213/32",      method: "{{ postgresql_auth_method }}" }
+  - { type: "host",  database: "all",              user: "db_backup",        address: "192.168.56.213/32",      method: "{{ postgresql_auth_method }}" }
 ## Параметры для pg_hba.conf.j2
 internal_networks:
   - "127.0.0.1/32"

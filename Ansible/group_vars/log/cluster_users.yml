@@ -1,0 +1,8 @@
+cluster_users_log: 
+  - name: db_backup
+    uid: 1101
+    gid: 1101
+    group: db_backup
+    home: /var/lib/pgbackup
+    pgbackup_home: /var/lib/pgbackup # Для скрипта pg_backup. Выглядит как костыль, но я хз, как лучше
+    shell: /usr/sbin/nologin

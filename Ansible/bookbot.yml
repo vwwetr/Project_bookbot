@@ -5,7 +5,6 @@
 - name: Add needed users to all cluster
   hosts: cluster
   become: true
-
   roles:
     - role: cluster_users
       tags: ['users']   
@@ -13,18 +12,15 @@
 - name: Set up PostgreSQL, create DB and give permissons to users on Database node
   hosts: db
   become: true
-
   roles:
     - role: pg_install
       become_user: root
-
     - role: db_create
       become_user: postgres
 
-#- name: Set up and turn on backup on Logging nodes
-#  hosts: log
-#  become: true
-
-#  roles:
-#    - role: db_backup
-#      become_user: ansible
+- name: Set up and turn on backup on Logging nodes
+  hosts: log
+  become: true
+  roles:
+    - role: db_backup
+      become_user: root

@@ -211,7 +211,7 @@ WHERE lower(trim(unaccent(title))) = lower(trim(unaccent(:title_in)));
     - если попытаешься вставить «логический дубль» — поймаешь unique constraint violation по индексу books_normalized_title_unique
 ## Настройка бекапа
 - pg_dump (custom, выбран по best practise как наиболее оптимальный)
-    - pg_dump запускаем на Node4 (backup/monitoring-нода) под сервисным пользователем pgbackup, подключаясь к Node1 по TCP.
+    - pg_dump запускаем на Node4 (backup/monitoring-нода) под сервисным пользователем pg_backup, подключаясь к Node1 по TCP.
 - pg_restore 
     - Из database ноды
 - Дамп повесить на кронтаб 
@@ -230,13 +230,12 @@ WHERE lower(trim(unaccent(title))) = lower(trim(unaccent(:title_in)));
 ## Пользователи linux и crontab job
 - user: pgbackup
 - node4 (основная backup-нода):
-    - `install -d -o pgbackup -g pgbackup -m 700 /var/lib/pgbackup` - Домашний каталог пользователя 
-    - `install -d -o pgbackup -g pgbackup -m 750 /opt/pgbackup` - каталог для скриптов
-    - `install -d -o pgbackup -g pgbackup -m 750 /var/backups/postgresql` - каталог для бекапов
-    - `install -d -o pgbackup -g pgbackup -m 750 /var/backups/postgresql/bookbot_db` - каталог для бекапов (зачем?)
+    - `install -d -o pgbackup -g pgbackup -m 700 /var/lib/pgbackup` - Домашний каталог пользователя (задается в роли cluster_users)
+    - `install -d -o pgbackup -g pgbackup -m 750 /opt/pgbackup` - каталог для скриптов (Роль db_backup)
+    - `install -d -o pgbackup -g pgbackup -m 750 /var/backups/postgresql` - каталог для бекапов (Роль db_backup)
     - Права:
-        - каталоги: 750 (rwxr-x---), владелец pgbackup:pgbackup;
-        - файлы-дампы: по умолчанию 640 (rw-r-----), владелец pgbackup:pgbackup.
+        - каталоги: 750 (rwxr-x---), владелец pg_backup:pgbackup;
+        - файлы-дампы: по умолчанию 640 (rw-r-----), владелец pg_backup:pg_backup.
     - Каталог для логов бекап-скриптов:
         - `install -d -o pgbackup -g pgbackup -m 750 /var/log/pgbackup`
         - Логи вида /var/log/pgbackup/pgdump-bookbot_db.log с правами 640.
@@ -265,12 +264,12 @@ WHERE lower(trim(unaccent(title))) = lower(trim(unaccent(:title_in)));
 ## Шаги по db_backup role
 1. Определиться с пользователем (ПРОВЕРИТЬ ВСЕХ)
     - Присутсвтвие на нодах `(+)`
-    - Права
-    - Роль в базе
+    - Права `(+)`
+    - Роль в базе `(+)`
 2. Откорректировать роль с пользаками `(+)`
 3. Откорректировать роль с базой данных `(+)`
-4. Написать роль с бекапом
-5. Настроить скрипт
+4. Написать роль с бекапом `(+)`
+5. Настроить скрипт `(+)`
 5.1 Проверить наличие в pgsql_common.yml переменных из jinja файлов PSGQL. `(+)`
 6. Закрыть доступ в базу (кроме localhost и log-node) `(+)`
 6. Настроить GRANTы нужным пользователям.

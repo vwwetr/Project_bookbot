@@ -17,6 +17,8 @@ limit_cpus    = 1
 Vagrant.configure("2") do |config|
   config.ssh.insert_key = false 
   config.vm.box_check_update = false
+  # Вместо дефолтного VirtualBox shared folder (vboxsf) используем rsync
+  config.vm.synced_folder ".", "/vagrant", type: "rsync", rsync__auto: true
   nodes = ["Database", "NginxTech", "NginxUi", "Logging", "Monitoring"]
 
   nodes.each_with_index do |name, i|

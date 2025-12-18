@@ -1,10 +1,8 @@
 ---
 # 0. Объединить все списки пользователей в один, чтобы дальше в тасках работать только с ним. Масштабируемо, реюзабельно!
 - name: Build combined list of cluster users
-  ansible.builtin.set_fact: # Модуль, который позволяет устанавливать переменные
-    cluster_users_all: >- # Собираем все списки пользователей в один
-      {{ cluster_users_common | default([]) +
-         cluster_users_project | default([]) }}
+  ansible.builtin.set_fact:
+    cluster_users_all: "{{ (cluster_users_common | default([])) + (cluster_users_app | default([])) + (cluster_users_log | default([])) }}"
 
 # 1. Группы (primary group)
 - name: Ensure primary groups for cluster users exist

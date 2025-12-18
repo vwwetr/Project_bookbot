@@ -1,0 +1,7 @@
+cluster_users_app:
+  - name: app_user
+    uid: 1102
+    gid: 1102
+    group: appuser
+    home: /home/appuser
+    shell: /usr/sbin/nologin
