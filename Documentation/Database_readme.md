@@ -142,3 +142,7 @@ WHERE lower(trim(unaccent(title))) = lower(trim(unaccent(:title_in)));
     - Логи крона: /var/log/cron
     - Логи скрипта pg_dump: /var/log/pgbackup/app_bot
     - \dp public.book_id_seq - выводит данные из системных каталогов (pg_class.relacl) в человекочитаемом виде.
+    - Залогиниться под postgres (только с ноды db):
+        sudo -u postgres -i & psql -d learningbot
+    - Посмотреть активность в базе: 
+        SELECT * FROM pg_stat_activity;

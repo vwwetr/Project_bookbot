@@ -1,0 +1,13 @@
+### Roles:
+- Users
+    - cluster_users
+- database
+    - pg_install
+    - db_create
+    - db_bakcup
+- ZabbixAgent
+- FluentD
+- Nginx
+- OpenSearch
+- K8s
+- FluentBit

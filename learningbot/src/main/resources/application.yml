@@ -1,61 +1,33 @@
-# ===============================
-# 🔧 Telegram Bot configuration
-# ===============================
-spring:
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
-      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
-
 telegram:
   bot:
-    username: vwwetrbot               # имя, которое ты задал в BotFather
-    token: 8245022377:AAEnGLfk2PXewHpqpEQFajyd1uUysepcz7A # токен можно задать прямо или через переменную окружения
+    username: ${TELEGRAM_BOT_USERNAME:}
+    token: ${TELEGRAM_BOT_TOKEN:}
 
-# ===============================
-# 🗄️ Database (PostgreSQL)
-# ===============================
-#spring:
-  #datasource:
-   # url: jdbc:postgresql://localhost:5432/resources   # адрес твоей локальной БД
-    #username: bot_user                                # пользователь БД
-    #password: bot_pass                                # пароль БД
-   # driver-class-name: org.postgresql.Driver
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:}
+    username: ${SPRING_DATASOURCE_USERNAME:}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+        maximum-pool-size: 10
+        minimum-idle: 2
+        connection-timeout: 30000
+        idle-timeout: 600000
+        max-lifetime: 1800000
 
-#  jpa:
-#    hibernate:
-#      ddl-auto: update        # автоматически создаёт/обновляет таблицы
-#    show-sql: true            # показывает SQL-запросы в консоли
-#    properties:
-#      hibernate:
-#        format_sql: true      # форматирует SQL для удобства
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
 
-# ===============================
-# 🌐 Server
-# ===============================
 server:
-  port: 8080                  # порт, на котором работает приложение
+  port: ${SERVER_PORT:8080}
 
-# ===============================
-# 🩺 Actuator & monitoring
-# ===============================
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health, info
-  endpoint:
-    health:
-      show-details: always
-
-# ===============================
-# 🧾 Logging
-# ===============================
 logging:
   file:
-    path: logs/
+    name: run.log
   level:
-    root: INFO
-    org.springframework.web: INFO
-    org.hibernate.SQL: DEBUG
-    com.learningbot: DEBUG
+    org.telegram: DEBUG
+    org.telegram.telegrambots: DEBUG
