@@ -1,8 +1,0 @@
-com/learningbot/config/TelegramBotConfig.class
-com/learningbot/telegram/LearningBot.class
-com/learningbot/dto/ResourceRequestDto.class
-com/learningbot/dto/ResourceResponseDto.class
-com/learningbot/controller/HealthController.class
-com/learningbot/LearningBotApplication.class
-com/learningbot/domain/Resource.class
-com/learningbot/service/ResourceService.class

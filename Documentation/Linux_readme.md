@@ -1,0 +1,13 @@
+### Users
+- postgres (системный, для SQL)
+    - Postgres roles:
+        - postgres (для SQL)
+        - app_user (для JSB)
+        - metric_user (Для Zabbix и Prometheus)
+- dbbackup (бекап базы данных)
+    - Присутсвие на нодах: node4, node5, node1, 
+- ansible
+- Monitoring
+- Logs (192.168.56.213)
+    - /var/log/pgbackup/app_bot (Логи скрипта на дамп)
+    - /var/log/cron (логи крона)
