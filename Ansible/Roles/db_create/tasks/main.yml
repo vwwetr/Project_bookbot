@@ -70,6 +70,10 @@
         ON ALL SEQUENCES IN SCHEMA public
         TO "{{ app_group_role }}";
 
+      GRANT USAGE, SELECT
+        ON ALL SEQUENCES IN SCHEMA public
+        TO "{{ backup_db_user }}";
+
       ALTER DEFAULT PRIVILEGES FOR ROLE "{{ app_user }}"
         IN SCHEMA public
         GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO "{{ app_group_role }}";
@@ -77,6 +81,14 @@
       ALTER DEFAULT PRIVILEGES FOR ROLE "{{ app_user }}"
         IN SCHEMA public
         GRANT SELECT ON TABLES TO "{{ readonly_user }}", "{{ backup_db_user }}";
+
+      ALTER DEFAULT PRIVILEGES FOR ROLE "{{ app_user }}"
+        IN SCHEMA public
+        GRANT USAGE, SELECT, UPDATE ON SEQUENCES TO "{{ app_group_role }}";
+
+      ALTER DEFAULT PRIVILEGES FOR ROLE "{{ app_user }}"
+        IN SCHEMA public
+        GRANT USAGE, SELECT ON SEQUENCES TO "{{ backup_db_user }}", "{{ readonly_user }}";
 
       ALTER ROLE "{{ app_user }}" SET log_statement = 'all';
       ALTER ROLE "{{ readonly_user }}" SET log_statement = 'all';

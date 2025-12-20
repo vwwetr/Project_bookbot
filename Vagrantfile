@@ -19,8 +19,12 @@ Vagrant.configure("2") do |config|
   config.vm.box_check_update = false
   # Вместо дефолтного VirtualBox shared folder (vboxsf) используем rsync
   config.vm.synced_folder ".", "/vagrant", type: "rsync", rsync__auto: true
-  nodes = ["Database", "NginxTech", "NginxUi", "Logging", "Monitoring"]
+  # выключаем попытки vbguest пересобирать GA на boot
+  if Vagrant.has_plugin?("vagrant-vbguest")
+    config.vbguest.auto_update = false
+  end
 
+  nodes = ["Database", "NginxTech", "NginxUi", "Logging", "Monitoring"]
   nodes.each_with_index do |name, i|
     ip_address = "#{private_host}#{210 + i}"
 
@@ -32,6 +36,22 @@ Vagrant.configure("2") do |config|
 
       # Автоматическое открытие порта SSH на ноде через firewalld
       node.vm.provision "shell", inline: <<-SHELL
+        # Centos:
+        # sudo dnf -y install dnf-plugins-core
+        # sudo dnf config-manager \
+        #   --setopt=baseos.baseurl=https://mirror.stream.centos.org/10-stream/BaseOS/x86_64/os/ \
+        #   --save
+        # sudo dnf config-manager --setopt=baseos.metalink= --save
+        # sudo dnf clean all
+        # sudo rm -rf /var/cache/dnf/*
+        # # Checking:
+        # CentOS kernel:
+        #sudo dnf -y install \
+        #gcc make perl \
+        #elfutils-libelf-devel \
+        #kernel-headers-$(uname -r) \
+        #kernel-devel-$(uname -r)
+        # Firewall:
         sudo systemctl enable firewalld
         sudo systemctl start firewalld
         # SSH:
@@ -63,15 +83,6 @@ Vagrant.configure("2") do |config|
         sudo firewall-cmd --permanent --add-port=10251/tcp       # kube-scheduler
         sudo firewall-cmd --permanent --add-port=10252/tcp       # kube-controller-manager
 
-        # # Centos:
-        # sudo dnf -y install dnf-plugins-core
-        # sudo dnf config-manager \
-        #   --setopt=baseos.baseurl=https://mirror.stream.centos.org/10-stream/BaseOS/x86_64/os/ \
-        #   --save
-        # sudo dnf config-manager --setopt=baseos.metalink= --save
-        # sudo dnf clean all
-        # sudo rm -rf /var/cache/dnf/*
-        # # Checking:
         sudo firewall-cmd --reload
         sudo firewall-cmd --list-ports
         sudo timedatectl set-timezone Europe/Moscow

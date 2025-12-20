@@ -22,7 +22,8 @@ export PATH="/usr/pgsql-{{ postgresql_version }}/bin:/usr/local/sbin:/usr/local/
 readonly DB_HOST DB_PORT DB_NAME DB_USER DB_BACKUP_DIR LOG_DIR DB_DUMP_PREFIX TS_FMT
 
 # Логи:
-exec >>"${LOG_DIR}/pg_backup.log" 2>>"${LOG_DIR}/pg_backup.err" # Весь stdout дальше по скрипту добавлять в файл pg_backup.log, stderr - в pg_backup.err.
+exec >>"${LOG_DIR}/pg_backup.log" 2>>"${LOG_DIR}/pg_backup.err" # Весь stdout дальше по скрипту добавлять в файл pg_backup.log, stderr - в pg_backup.err. 
+# Файлы создались под рутом, так как скрипт под рутом, а должны под db_backup.
 echo "==== $(date) STARTED by CRON as $(whoami) ===="
 logger "[PG_BACKUP] Скрипт pg_backup.sh запущен пользователем $(whoami)"
 
@@ -41,7 +42,7 @@ chmod 0600 "$HOME/.pgpass" 2>/dev/null || true # Правило безопасн
 /usr/bin/pg_dump --no-password -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -Fc \
   | /bin/gzip > "$DUMP_PATH"
 
-# Проверяем, что файл создан:
+# Проверяем, что файл создан (создается файл с данными о последнем дампе):
 [ -s "$DUMP_PATH" ] || { echo "Dump not created: $DUMP_PATH"; exit 1; }
 date -Is > "{{ postgresql_backup_log_dir }}/pg_backup.last_success"
 

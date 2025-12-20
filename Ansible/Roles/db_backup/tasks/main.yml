@@ -12,6 +12,7 @@
       - postgresql-private-libs
     state: absent
     autoremove: true
+  ignore_errors: true 
 
 # 1. Импортируем ключ PGDG
 - name: Copy PGDG GPG key to target hostt
@@ -107,6 +108,6 @@
   ansible.builtin.cron:
     name: "pgdump app_bot each 15 minutes" 
     user: db_backup
-    minute: "*/15"
+    minute: "*/5"
     job: "{{ postgresql_script_dir }}/pg_backup.sh"
     state: present
