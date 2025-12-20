@@ -11,15 +11,18 @@
   listen: 'Restart PostgreSQL'
 
 - name: PostgreSQL healthcheck
+  become: true
+  become_user: postgres
   community.postgresql.postgresql_ping:
     login_unix_socket: "{{ postgresql_unix_socket_dir }}"
     login_db: "{{ postgresql_login_name }}"
+    login_user: "{{ postgresql_login_name }}"
       # Подключение происходит через локальный сокет с использованием пользователя ОС "postgres"
       # к базе данных по умолчанию "postgres". Пароль не нужен благодаря peer authentication.
-    register: pg_ping_result
-    until: pg_ping_result.is_available | default(False) | bool
+  register: pg_ping_result
+  until: pg_ping_result.is_available | default(False) | bool
       # Ждём, пока модуль postgresql_ping вернёт is_available=True.
       # Условие устойчиво к неопределённому значению (default(False)).
-    retries: 20   # Увеличим количество попыток на случай медленного старта
-    delay: 3      # Если не получится, то повторится попытка через 3 секунды.
+  retries: 20   # Увеличим количество попыток на случай медленного старта
+  delay: 3      # Если не получится, то повторится попытка через 3 секунды.
   listen: 'PostgreSQL healthcheck'

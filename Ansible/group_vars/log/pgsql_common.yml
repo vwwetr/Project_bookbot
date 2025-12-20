@@ -26,6 +26,7 @@ postgresql_dump_name: "{{ postgresql_instance_name }}_db_dump"
 postgresql_dump_ts_format: "%Y-%m-%d_%H%M%S"
 postgresql_unix_socket_dir: "/var/run/postgresql"
 postgresql_wal_archive_dir: "/var/lib/pgsql/wal_archive/{{ postgresql_instance_name }}"
+pgbackup_home: "/var/lib/pgbackup"
 ## Logging
 postgres_log_destination: "stderr"
 postgres_logging_collector: "on"

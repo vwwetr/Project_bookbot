@@ -1,116 +1,70 @@
 ## Lightweight Git Workflow + Jira Integration description
 
-- Этот проект использует упрощенный Git workflow: ветка разработки `develop`, и прод ветка `master`. Без фичей, хотфиксов и релизов.
-- Удаленный GitHub репозиторий интеграирован с Jira (канбан проекта), которая автоматически закрывает задачи при merge Pull Request благодаря настроенной автоматизации.
+- Этот проект использует упрощенный Git workflow: ветка разработки `develop`, и прод ветка `master`. Без фичей, хотфиксов и релизов, без тегов, но с комментариями в коммитах. 
+- В обозначении версиий репозиториев используются базовые метрики семантического версионирования;
+    - Версии присваиваются в следующем порядке:
+        - `v.0.0.1`: HotFix, bugfix, patch, etc.;
+        - `v.0.1.0`: Minor (for example, "build PostgreSQL database");
+        - `v.1.0.0`: Major (for example: "first project succes build")
+- Удаленный GitHub репозиторий интегрирован с Jira (канбан проекта), которая автоматически закрывает задачи при merge Pull Request в master и commit в develop (в случае указания в комментарии тега задачи в Jira, (прим.: PBB-1...))
+    - Настройки автоматизации: см. `./Documentation/Develop commits automation with tasks.png` и `./Documentation/Develop commits automation with tasks.png`
 
-### Настройка локального Git
+### Git config settings
 - ~/.gitconfig - общий конфиг для всех локальных репозиториев конкретного пользователя
 ``` bash
-git config --list --show-origin
-git config --list # Проверка используемых конфигураций
-git config --global iniy.defaultBranch develop
-git branch develop
-git flow init
-git push -u origin develop
-git push --force-with-lease
-git branch --unset-upstream # Отвязаться от удаленной ветки
-git branch --set-upstream-to=origin/master master # Привязать локальный master к удаленному
+git config --global init.defaultBranch master       # Установить название ветки по умолчанию для новых репозиториев "master", вместо стандартной main
+git config --global user.name "vwwetr"              # Добавляем имя пользователя
+git config --global user.email "vwwetr@gmail.com"   # Добавляем почту (которую указали в GitHub!)
+``` 
+### Github and connection settings
+- Создаем репозиторий;
+- ВАЖНО: НЕ ставить галочки на:
+    - “Initialize this repository with a README” (если остави, он создаст файл и сразу создаст ветку main и предется танцевать с бубном.)
+    - .gitignore (если что, потом создадим и запушим)
+    - License (та же причина, что и с первыми двумя пунктами)
+        - Файл LICENSE (если он нужен) добавляем уже после инициализации master/develop отдельным коммитом.
+    - В таком состоянии первая запушенная ветка станет default.
+- Настраиваем SSH:
+    - Генерируем ключ: `ssh-keygen -t ed25519 -C "vwwetr@github"`
+    - Запускаем ssh-agent (на Mac): `eval "$(ssh-agent -s)"` (Обычно запущен, но мало ли.)
+    - Добавляем ключик в ссх-агента:`ssh-add ~/.ssh/id_ed25519`
+    - Копируем ключик из `cat ~/.ssh/id_ed25519.pub` и добавляем в GitHub аккаунт;
+    - Проверяем соединение с репозиторием:`ssh -T git@github.com`
+
+### Git init and connect to GitHub (given in exeption order):
+``` bash
+git init                                                        # Создаём репозиторий
+git checkout -b master                                          # Явно создаем master
+# .gitignore, README и т.п. — по желанию
+# Шота делаем...
+git add --all                                                   # Добавить все изменения в stage
+git commit -m "Initial commit"                                  # Создать коммит с комментарием
+git remote add origin git@github.com:vwwetr/Project_bookbot.git # Привязываемся к удаленному репозиторию
+git push -u origin master                                       # Отправить изменения master в удаленный репозиторий и создать связь с отслеживанием между локальным и удаленным репозиторием
+git checkout -b develop master                                  # Создаем ветку от master для разработки
+git push -u origin develop                                      # Отправить изменения develop в удаленный репозиторий и создать связь с отслеживанием между локальным и удаленным репозиторием
+git branch -a                                                   # Отобразить лоакальные и удаленные ветки
+git rev-parse develop                                           # Вывести хэш коммита, на который в данный момент указывает ветка develop.
 ``` 
 
-## Pull request merged → Transition issue to Done
-### 1. Обновить основную ветку
-
-Перейти в `main` и скачать последние изменения:
-
+### Typical work scenario in `develop` branch (before `master` release)
+- Перейти в `develop`;
+- Внести необходимые изменения (например, закрыли задачу в Jira с тегом PBB-1);
+- Далее:
 ``` bash
-git checkout main
-git pull origin main
+git add --all
+git commit -m "PBB-1 v.0.4.0 Builded PostgreSQL database"
+git push
 ```
 
-### 2. Создать короткую feature-ветку
-
-Создать новую ветку под задачу (короткое имя без тикета Jira):
-
-``` bash
-git checkout -b feature/<name>
+### Typical release scenario in `master` by pull request (for example, version will be `1.0.0`)
+- Убедиться, что все задачи для релиза завершены и закоммичены в `develop`;
+- Запушить актуальное состояние `develop`:
+```bash
+git checkout develop
+git push
 ```
-
-Примеры:
-
-``` bash
-git checkout -b feature/db
-git checkout -b feature/ansible
-git checkout -b feature/monitoring
-```
-
-## 3. Внести изменения
-
-Работай над задачей, редактируй код, конфиги и т. д.
-
-## 4. Сделать коммит с ключом задачи Jira
-
-Каждый коммит должен содержать **issue key** (например `PBB-2`):
-
-``` bash
-git add .
-git commit -m "PBB-2: создание роли для базы"
-```
-
-Это гарантирует связь коммита и PR с задачей в Jira.
-
-## 5. Отправить ветку на GitHub
-
-Первый push:
-
-``` bash
-git push -u origin feature/<name>
-```
-
-Например:
-
-``` bash
-git push -u origin feature/db
-```
-
-## 6. Создать Pull Request
-
-На GitHub нажать:
-
-**Compare & pull request**
-
-Название PR должно содержать issue key:
-
-    PBB-2: создание роли для базы
-
-## 7. Выполнить merge PR
-
-После проверки нажать:
-
-**Merge pull request**
-
-Изменения попадут в `main`.
-
-## 8. Jira автоматически переведёт задачу в Done
-
-Благодаря правилу:
-
-    Pull request merged → Transition issue to Done
-
-После merge:
-
--   задача перейдёт в статус Done,
--   PR и коммиты появятся в разделе Development,
--   никаких ручных действий не требуется.
-
-## 9. Удалить ветку (рекомендуется)
-
-Сначала на GitHub:
-
-``` bash
-git push origin --delete feature/db
-```
-Потом локально:
-
-``` bash
-git branch -d feature/<name>
-```
+- На GitHub открыть Pull Request: base: master ← compare: develop;
+- После ревью и проверки — выполнить merge PR в master;
+- Пометить релиз тегом (например, v1.0.0) и обновить статус задач в Jira.
+    - Порядок присвоения версий - см. `Lightweight Git Workflow + Jira Integration description` в шапке этого readme.

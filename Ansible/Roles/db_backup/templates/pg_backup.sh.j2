@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+set -euo pipefail # Любая ошибка роняет скрипт (Это обеспечивается pipefail. Без него, код вовзрата pipe считается по последней команде)
+# Best practise безопасности скриптов
+# Указав параметр -e, при ошибке команда не продолжит делать “полурабочие” действия и скрипт остановится.
+# Если нужно убедиться, что все команды в пайпах завершились успешно, нужно использовать -o pipefail.
+# Наверно самый полезный параметр -u. Благодаря ему оболочка проверяет инициализацию переменных в скрипте. Если переменной не будет, скрипт немедленно завершиться.
+umask 077 # Запретить доступ к файлам и директориям группе и остальным по умолчанию.
+
+# Определяем параметры postgres через переменные скрипта:
+DB_HOST="{{ db_host }}" # Переменная из /group_vars/db/pgsql_common.yml
+DB_PORT="{{ postgres_port }}" # Переменная из /group_vars/db/pgsql_common.yml
+#backup_host=192.168.56.213
+DB_NAME="{{ postgresql_db_name }}" # Переменная из /group_vars/db/pgsql_common.yml
+DB_USER="{{ backup_db_user }}" # Переменная из /group_vars/db/pgsql_common.yml
+DB_BACKUP_DIR="{{ postgresql_backup_dir }}" # Переменная из /group_vars/db/pgsql_common.yml
+LOG_DIR="{{ postgresql_backup_log_dir }}" # Переменная из /group_vars/db/pgsql_common.yml
+DB_DUMP_PREFIX="{{ postgresql_dump_name }}" # Переменная из /group_vars/db/pgsql_common.yml
+TS_FMT="{{ postgresql_dump_ts_format }}" # Переменные из /group_vars/db/pgsql_common.yml
+export HOME="{{ pgbackup_home }}" # Переменная из /group_vars/all/cluster_users.yml
+export PATH="/usr/pgsql-{{ postgresql_version }}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+readonly DB_HOST DB_PORT DB_NAME DB_USER DB_BACKUP_DIR LOG_DIR DB_DUMP_PREFIX TS_FMT
+
+# Логи:
+exec >>"${LOG_DIR}/pg_backup.log" 2>>"${LOG_DIR}/pg_backup.err" # Весь stdout дальше по скрипту добавлять в файл pg_backup.log, stderr - в pg_backup.err. 
+# Файлы создались под рутом, так как скрипт под рутом, а должны под db_backup.
+echo "==== $(date) STARTED by CRON as $(whoami) ===="
+logger "[PG_BACKUP] Скрипт pg_backup.sh запущен пользователем $(whoami)"
+
+# Имя/путь дампа (runtime):
+TS="$(date +"$TS_FMT")" # Текущее время в заданном формате. 
+DUMP_NAME="${DB_DUMP_PREFIX}-${TS}.dump.gz"
+DUMP_PATH="${DB_BACKUP_DIR}/${DUMP_NAME}"
+
+# Проверяем .pgpass:
+test -f "$HOME/.pgpass" || { echo ".pgpass not found in $HOME"; exit 1; } # Проверяем, что .pgpass есть и это файл. If 0 - ok, else exit 1 - error;
+chmod 0600 "$HOME/.pgpass" 2>/dev/null || true # Правило безопасности для libpq. 600 - rw для владельца. ch,od-ом страхуем ansible.
+# Если .pgpass доступен не только владельцу (слишком “широкие” права), файл считается небезопасным и может быть проигнорирован.
+# libpq - библиотека, позволяющая клиентским приложениям отправлять SQL-запросы на сервер и получать результаты, а также управлять соединениями.
+
+# Делаем дамп (custom режим) и сразу gzip:
+/usr/bin/pg_dump --no-password -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -Fc \
+  | /bin/gzip > "$DUMP_PATH"
+
+# Проверяем, что файл создан (создается файл с данными о последнем дампе):
+[ -s "$DUMP_PATH" ] || { echo "Dump not created: $DUMP_PATH"; exit 1; }
+date -Is > "{{ postgresql_backup_log_dir }}/pg_backup.last_success"
+
+echo "Backup created: $DUMP_PATH"
+echo "==== $(date) FINISHED ===="

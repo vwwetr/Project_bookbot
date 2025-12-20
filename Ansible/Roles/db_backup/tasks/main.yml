@@ -1,20 +1,113 @@
 #SPDX-License-Identifier: MIT-0
 ---
 # tasks file for db_backup
-- name: Create directory for SQL scripts
-  file:
-  path: /opt/postgresql/sql
-  state: directory
-  owner: postgres
-  group: postgres
-  mode: '0750'
+# 0. Удаляем дистрибьютивный PostgreSQL, если он уже успел установиться (postgresql-server-16.10-3.el10.aarch64 и др.), чтобы не путаться
+- name: Remove distributive PostgreSQL packages (if present)
+  ansible.builtin.dnf:
+    name:
+      - postgresql
+      - postgresql-server
+      - postgresql-contrib
+      - postgresql-libs
+      - postgresql-private-libs
+    state: absent
+    autoremove: true
+  ignore_errors: true 
 
-# crontab play
-- name: Configure crontab user
-# healthcheck crontab play
+# 1. Импортируем ключ PGDG
+- name: Copy PGDG GPG key to target hostt
+  ansible.builtin.copy:
+    src: "PGDG-RPM-GPG-KEY-AARCH64-RHEL"
+    dest: "/etc/pki/rpm-gpg/PGDG-RPM-GPG-KEY-AARCH64-RHEL"
+    owner: root
+    group: root
+    mode: '0644'
+- name: Import PGDG GPG key from local file
+  ansible.builtin.rpm_key:
+    state: present
+    key: "/etc/pki/rpm-gpg/PGDG-RPM-GPG-KEY-AARCH64-RHEL"
 
-# Нода, где выполняется pg_dump + cron (Логирование)
+# 2. Ставим репозиторий PGDG для EL-10 на aarch64
+- name: Install PGDG repository for PostgreSQL {{ postgresql_version }} (EL-10 aarch64)
+  ansible.builtin.dnf:
+    name: "{{ pgdg_repo_url }}"
+    state: present
 
-- name: Configure backup host (scripts + cron)
-  include_tasks: scripts.yml
-  when: "'pg_backup_primary' in group_names"
+# 3. Отключаем встроенный модуль postgresql от CentOS/RHEL, чтобы не тянуть системные пакеты
+- name: Disable built-in PostgreSQL module from distributive
+  ansible.builtin.command:
+    cmd: "dnf -qy module disable postgresql"
+  changed_when: false   # команда идемпотентна, нам не важно changed/unchanged
+  failed_when: false    # если модулей нет — не считаем это ошибкой
+
+# 4. Установка PostgreSQL client utilities + libpq из репозиториев PGDG
+- name: Install PostgreSQL {{ postgresql_version }} client utilities and libpq (PGDG)
+  # Нужен для: pg_dump/psql/pg_restore на backup-ноде + клиентские библиотеки (libpq)
+  ansible.builtin.dnf:
+    name:
+      - "postgresql{{ postgresql_version }}"        # client programs (pg_dump/psql/pg_restore)
+      - "postgresql{{ postgresql_version }}-libs"   # libpq / shared libs for clients
+    state: present
+
+# 4.1. Установка cron daemon
+- name: Install cron daemon packages (CentOS Stream 10)
+  ansible.builtin.dnf:
+    name:
+      - cronie
+      # - cronie-anacron   # опционально
+    state: present
+
+# 4.2. Включение crond.service
+- name: Enable and start crond.service
+  ansible.builtin.systemd_service:
+    name: crond
+    state: started
+    enabled: true
+  
+# 5. Создание директорий для бэкапов и скриптов
+- name: Create directory for database dumps
+  ansible.builtin.file: 
+    path: "{{ item }}"
+    state: directory
+    owner: db_backup
+    group: db_backup
+    mode: '0750'
+  loop:
+    - "{{ postgresql_backup_dir }}"
+    - "{{ postgresql_script_dir }}"
+    - "{{ postgresql_backup_log_dir }}"
+
+# 6. Пробрасываем .pgpass для db_backup
+- name: Deploy .pgpass for db_backup
+  become_user: db_backup
+  ansible.builtin.template:
+    src: .pgpass.j2
+    dest: "{{ pgbackup_home }}/.pgpass"
+    owner: db_backup
+    group: db_backup
+    mode: "0600"
+  no_log: true  # чтобы секрет не попал в вывод
+
+# 7. Пробрасываем скрипт бэкапа
+- name: Copy to node db_backup shell script
+  ansible.builtin.template:
+    src: pg_backup.sh.j2
+    dest: "{{ postgresql_script_dir }}/pg_backup.sh"
+    owner: root
+    group: db_backup
+    mode: '0750'
+  no_log: true  # чтобы секрет не попал в вывод
+
+# 8. Проверка скрипта на синтаксическую ошибку
+- name: Bash syntax check
+  ansible.builtin.command: "bash -n {{ postgresql_script_dir }}/pg_backup.sh"
+  changed_when: false
+
+# 9. Добавление скрипта в crontab
+- name: Configure crontab user db_backup
+  ansible.builtin.cron:
+    name: "pgdump app_bot each 15 minutes" 
+    user: db_backup
+    minute: "*/5"
+    job: "{{ postgresql_script_dir }}/pg_backup.sh"
+    state: present
