@@ -4,6 +4,7 @@ import com.learningbot.domain.Resource;
 import com.learningbot.repository.ResourceRepository;
 import org.springframework.stereotype.Service;
 
+import java.text.Normalizer;
 import java.util.List;
 import java.util.Locale;
 
@@ -60,7 +61,9 @@ public class ResourceService {
             return "";
         }
         String trimmed = value.trim().replaceAll("\\s+", " ");
-        return trimmed.toLowerCase(Locale.ROOT);
+        String lowercased = trimmed.toLowerCase(Locale.ROOT);
+        String normalized = Normalizer.normalize(lowercased, Normalizer.Form.NFD);
+        return normalized.replaceAll("\\p{M}", "");
     }
 
     public record ResourceDraft(
