@@ -37,20 +37,20 @@ Vagrant.configure("2") do |config|
       # Автоматическое открытие порта SSH на ноде через firewalld
       node.vm.provision "shell", inline: <<-SHELL
         # Centos:
-        # sudo dnf -y install dnf-plugins-core
-        # sudo dnf config-manager \
-        #   --setopt=baseos.baseurl=https://mirror.stream.centos.org/10-stream/BaseOS/x86_64/os/ \
-        #   --save
-        # sudo dnf config-manager --setopt=baseos.metalink= --save
-        # sudo dnf clean all
-        # sudo rm -rf /var/cache/dnf/*
+        sudo dnf -y install dnf-plugins-core
+        sudo dnf config-manager \
+           --setopt=baseos.baseurl=https://mirror.stream.centos.org/10-stream/BaseOS/x86_64/os/ \
+           --save
+        sudo dnf config-manager --setopt=baseos.metalink= --save
+        sudo dnf clean all
+        sudo rm -rf /var/cache/dnf/*
         # # Checking:
         # CentOS kernel:
-        #sudo dnf -y install \
-        #gcc make perl \
-        #elfutils-libelf-devel \
-        #kernel-headers-$(uname -r) \
-        #kernel-devel-$(uname -r)
+        sudo dnf -y install \
+        gcc make perl \
+        elfutils-libelf-devel \
+        kernel-headers-$(uname -r) \
+        kernel-devel-$(uname -r)
         # Firewall:
         sudo systemctl enable firewalld
         sudo systemctl start firewalld

@@ -1,0 +1,37 @@
+---
+nginx_listen_ipv6: false
+
+nginx_remove_default_vhost: true
+
+nginx_vhosts:
+  - server_name: "localhost"
+    listen: "192.168.56.212:80"
+    extra_parameters: |
+      allow 192.168.56.1;
+      deny all;
+      return 301 https://$host$request_uri;
+  - server_name: "localhost"
+    listen: "192.168.56.212:443 ssl http2"
+    extra_parameters: |
+      ssl_certificate     /etc/nginx/ssl/localhost.crt;
+      ssl_certificate_key /etc/nginx/ssl/localhost.key;
+      allow 192.168.56.1;
+      deny all;
+      return 200 "nginx ok";
+
+nginx_upstreams:
+  - name: grafana
+    servers:
+      - "192.168.56.1:3000"
+  - name: prometheus
+    servers:
+      - "192.168.56.1:9090"
+  - name: opensearch_dash
+    servers:
+      - "192.168.56.213:5601"
+  - name: zabbix_http
+    servers:
+      - "192.168.56.214:80"
+  - name: zabbix_https
+    servers:
+      - "192.168.56.214:443"

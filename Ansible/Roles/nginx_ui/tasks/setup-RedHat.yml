@@ -1,0 +1,29 @@
+---
+- name: Enable nginx repo.
+  template:
+    src: nginx.repo.j2
+    dest: /etc/yum.repos.d/nginx.repo
+    owner: root
+    group: "{{ root_group }}"
+    mode: 0644
+  when: nginx_yum_repo_enabled | bool
+
+- name: Stop dnf-makecache.timer during installation.
+  service:
+    name: dnf-makecache.timer
+    state: stopped
+  changed_when: false
+  failed_when: false
+
+- name: Ensure nginx is installed.
+  dnf:
+    name: "{{ nginx_package_name }}"
+    state: present
+    lock_timeout: 30
+
+- name: Start dnf-makecache.timer after installation.
+  service:
+    name: dnf-makecache.timer
+    state: started
+  changed_when: false
+  failed_when: false

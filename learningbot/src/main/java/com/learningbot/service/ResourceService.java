@@ -23,14 +23,7 @@ public class ResourceService {
         String normalizedSection = normalize(draft.section());
         String normalizedFormat = normalize(draft.format());
 
-        boolean exists = resourceRepository
-                .existsByNormalizedTitleAndNormalizedAuthorAndNormalizedSectionAndNormalizedFormatAndStudyTime(
-                        normalizedTitle,
-                        normalizedAuthor,
-                        normalizedSection,
-                        normalizedFormat,
-                        draft.studyTime()
-                );
+        boolean exists = resourceRepository.existsByNormalizedTitle(normalizedTitle);
 
         if (exists) {
             return false;
@@ -54,6 +47,14 @@ public class ResourceService {
 
     public List<Resource> getResourcesByStudyTime(int studyTime) {
         return resourceRepository.findByStudyTime(studyTime);
+    }
+
+    public List<Resource> getResourcesBySectionAndStudyTime(String section, int studyTime) {
+        return resourceRepository.findBySectionAndStudyTime(section, studyTime);
+    }
+
+    public boolean titleExists(String title) {
+        return resourceRepository.existsByNormalizedTitle(normalize(title));
     }
 
     private String normalize(String value) {

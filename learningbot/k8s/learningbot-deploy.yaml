@@ -1,0 +1,50 @@
+apiVersion: apps/v1 # stable and current version for managing high-level application workload resources, such as Deployments, StatefulSets, and DaemonSets
+                    # See scheme: kubectl explain deployment --api-version=apps/v1
+kind: Deployment # Тип рабочей нагрузки (workload, приложение, работающее в поде). Еще бывают всякие DaemonSet, StatefulSet, Job, CronJob.
+metadata: # Every object kind MUST have the following metadata in a nested object field (namespace, name, uid)":
+  name: learningbot # This value is used in the path when retrieving an individual object.
+  namespace: learningbot # a namespace is a DNS compatible label that objects are subdivided into (способ разделения ресурсов в кластере между пользователями или проектами.)
+spec: # Pod Management specification of the desired behavior of the deployment. Поведение контроллера Deployment,
+  replicas: 1 # желаемое количество Pod’ов
+  selector: # selector is a label query over pods that should match the replica count. “Этот Deployment/ReplicaSet управляет Pod’ами, у которых есть label app=learningbot”.
+    matchLabels: # Какими подами управляет Controller
+      app: learningbot
+  template: # Шаблон, по которому создаются поды. Если labels в шаблоне не удовлетворяют selector.matchLabels, контроллер не сможет “узнать” Pod’ы, которые сам создаёт, и Kubernetes предотвратит создание/обновление (классическая ошибка: selector does not match template labels).
+    metadata: 
+      labels:
+        app: learningbot
+    spec: # Конфигурация подов (настройки окружения выполнения Pod’а.)
+      serviceAccountName: learningbot-sa #под каким ServiceAccount pod будет ходить в API
+      containers: # Cписок контейнеров внутри Pod
+        - name: learningbot # Имя контейнера внутри pod;
+          image: learningbot:latest # Образ контейнера
+          imagePullPolicy: Always # Политика скачивания образа (тянуть всегда). Можно и не указывать, так как по умолчанию Always, но тут для наглядности.
+          ports:
+            - containerPort: 8080 # Порт, который контейнер слушает; используется для сервисов/проб и информации о портах.
+          envFrom: # Импорт всех переменных окружения из указанных источников
+            - secretRef: # Загрузка всех ключей из Secret как env‑переменных.
+                name: learningbot-secret 
+          readinessProbe: # Проверка готовности контейнера принимать трафик; Если проба not ready - pod убирается из endpoints Service, трафик на него не идёт, но контейнер не рестартится
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 10 # Задержка до первой проверки
+            periodSeconds: 5 # далее каждые 5 секунд
+            timeoutSeconds: 2 # таймаут выполнения одной проверки
+            failureThreshold: 3 # Cколько подряд неуспешных проверок нужно, чтобы Kubernetes пометил контейнер NotReady (и убрал pod из endpoints Service).
+          livenessProbe: # Проверка состояния жизни контейнера; Если liveness фейлится подряд — kubelet рестартит контейнер.
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 45
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+
+
+# Значения времени в пробах — это не “магические дефолты”, а компромисс между скоростью реакции кластера и риском ложных срабатываний. 
+# Best practice в k8s: параметры выбирают из измерений (сколько реально стартует приложение и как быстро отвечает endpoint),
+# а для долгого старта — используют startupProbe, чтобы liveness не убивал контейнер во время прогрева.
+
+# Best practice: startupProbe включают не “всегда”, а когда есть риск ложных рестартов на старте (долгий/нестабильный прогрев, миграции, cold start, JVM/Spring).
+# Kubernetes прямо описывает, что startupProbe нужен, чтобы не убивать медленно стартующие контейнеры, и что при её наличии она отключает liveness/readiness до успеха.
