@@ -99,24 +99,21 @@ source .env.local && mvn -DskipTests spring-boot:run
 ## Контейнеризация приложения:
 ```sh
 mvn -DskipTests package # Из директории /learningbot
-docker build --no-cache -t learningbot:latest .
 brew install minikube
 brew install kubectl
-minikube delete
-rm -rf ~/.minikube/cache/preloaded-tarball
 minikube start --driver=docker --alsologtostderr -v=7
-kubectl create namespace learningbot --dry-run=client -o yaml | kubectl apply -f -
+docker build --no-cache -t learningbot:6dcebd2 . # 6dcebd2 - хэш последнего удачного коммита
+kubectl create namespace learningbot --dry-run=client -o yaml | kubectl apply -f - # Гарантирует наличие namespace learningbot без прерывания скрипта при повторном запуске
 kubectl -n learningbot create serviceaccount learningbot-sa
 kubectl create secret generic learningbot-secret \
   --from-env-file=.env.local \
   -n learningbot \
   --dry-run=client -o yaml | kubectl apply -f -
-minikube image load --overwrite=true learningbot:latest # Возможно, при пересборке образа имеет смысл добавлять теги --pull или --overwrite
+minikube image load --overwrite=true learningbot:6dcebd2 # Возможно, при пересборке образа имеет смысл добавлять теги --pull или --overwrite
 kubectl apply -f ./k8s/learningbot-deploy.yaml
 kubectl apply -f ./k8s/learningbot-service.yaml
-kubectl -n learningbot get pods
-kubectl cluster-info
 kubectl get ns learningbot
+kubectl -n learningbot get pods
 kubectl -n learningbot get sa learningbot-sa
 ```
 ## Диагностика кластера
@@ -149,6 +146,9 @@ kubectl describe configmap learningbot-config -n learningbot
 kubectl describe secret learningbot-secret -n learningbot
 kubectl get configmap learningbot-config -n learningbot -o yaml
 kubectl delete configmap learningbot-config -n learningbot
+minikube delete # Удалить кластер
+rm -rf ~/.minikube/cache/preloaded-tarball
+kubectl scale deploy/learningbot --replicas=0 -n learningbot # Останавливает деплоймент learningbot в namespace learningbot, выставляя 0 реплик (поды не будут пересоздаваться)
 ```
 ### Ноды, namespacr, ресурсы
 ```sh
@@ -158,6 +158,7 @@ kubectl get pods -A -o wide
 kubectl get svc -A
 kubectl get endpoints -A
 kubectl get namespaces
+kubectl delete pod learningbot-6857c8b8cd-x2zjv -n learningbot
 ```
 ### События и описания объектов
 ```sh
@@ -205,12 +206,20 @@ docker ps
 docker rm
 docker rmi
 docker image ls
-docker build --no-cache -t learningbot:latest .
+docker build --no-cache -t learningbot:tag .
 ```
-## Траблисы
+## Траблисы и их решение
 1. Не обновляется image в minikube при `minikube image load learningbot:latest`
   - Ты собираешь learningbot:latest снова и снова. Для Kubernetes тег — не гарантия обновления, это просто имя.
   - Если imagePullPolicy не Always, kubelet не будет пытаться “обновить” latest, если образ уже есть локально. Он просто использует то, что уже лежит на ноде.
   - minikube image load должен доставить новый образ в runtime Minikube, но на практике:
       - overwrite поведение зависит от флагов/версии, и есть известные кейсы, когда “перезагрузка” образа с тем же тегом ведёт себя не так, как ожидают, особенно если образ “в употреблении” (или Pod ещё не успел завершиться).
   - **Решение:** `minikube image load --daemon learningbot:latest --overwrite && kubectl -n learningbot rollout restart deployment/<deployment-name>`
+2. Pod пересоздаётся и падает с `ImagePullBackOff`/`InvalidImageName`
+  - Под удаляешь, а он возвращается — значит им управляет контроллер (ReplicaSet/Deployment), а не “кэш”.
+  - `InvalidImageName` часто возникает из‑за плейсхолдера вроде `learningbot:<sha>` или тега с недопустимыми символами.
+  - `ImagePullBackOff` появляется, когда образ не найден/недоступен в registry или имя указано неверно.
+  - **Решение:** найти владельца RS, исправить `image` на валидный тег/диджест и применить манифест.
+    - Проверка владельца: `kubectl get pod <pod> -n learningbot -o=jsonpath='{.metadata.ownerReferences[0].kind}{" "}{.metadata.ownerReferences[0].name}{"\n"}'`
+    - Остановка пересоздания при необходимости: `kubectl scale deploy/<name> --replicas=0 -n learningbot`
+    - Обновление образа: `kubectl set image deploy/<name> <container>=learningbot:<tag> -n learningbot && kubectl rollout status deploy/<name> -n learningbot`

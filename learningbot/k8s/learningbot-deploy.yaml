@@ -17,8 +17,8 @@ spec: # Pod Management specification of the desired behavior of the deployment. 
       serviceAccountName: learningbot-sa #под каким ServiceAccount pod будет ходить в API
       containers: # Cписок контейнеров внутри Pod
         - name: learningbot # Имя контейнера внутри pod;
-          image: learningbot:latest # Образ контейнера
-          imagePullPolicy: Always # Политика скачивания образа (тянуть всегда). Можно и не указывать, так как по умолчанию Always, но тут для наглядности.
+          image: learningbot:6dcebd2
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080 # Порт, который контейнер слушает; используется для сервисов/проб и информации о портах.
           envFrom: # Импорт всех переменных окружения из указанных источников
