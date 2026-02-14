@@ -48,6 +48,13 @@
             <version>${spring.boot.version}</version>
         </dependency>
 
+        <!-- Actuator (health/info/metrics endpoints) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+            <version>${spring.boot.version}</version>
+        </dependency>
+
         <!-- Data JPA + PostgreSQL -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

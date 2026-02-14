@@ -1,0 +1,12 @@
+apiVersion: v1 # Service относится к “core API group” (в отличие от Deployment, который в apps/v1)
+kind: Service # Тип - “сетевая абстракция” (VIP/DNS + балансировка на pods).
+metadata:
+  name: learningbot # DNS-имя внутри namespace
+  namespace: learningbot
+spec:
+  selector:
+    app: learningbot
+  ports:
+    - name: http
+      port: 8080
+  type: ClusterIP

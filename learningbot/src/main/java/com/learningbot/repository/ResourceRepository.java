@@ -8,13 +8,9 @@ import java.util.List;
 
 @Repository
 public interface ResourceRepository extends JpaRepository<Resource, Long> {
-    boolean existsByNormalizedTitleAndNormalizedAuthorAndNormalizedSectionAndNormalizedFormatAndStudyTime(
-            String normalizedTitle,
-            String normalizedAuthor,
-            String normalizedSection,
-            String normalizedFormat,
-            Integer studyTime
-    );
+    boolean existsByNormalizedTitle(String normalizedTitle);
 
     List<Resource> findByStudyTime(Integer studyTime);
+
+    List<Resource> findBySectionAndStudyTime(String section, Integer studyTime);
 }

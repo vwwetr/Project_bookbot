@@ -12,6 +12,9 @@
   loop:
     - { name: "{{ app_group_role }}", flags: "NOLOGIN" }
     - { name: "{{ app_user }}",       flags: "LOGIN",  password: "{{ app_user_password }}" }
+    - { name: "{{ db_migrator_user }}", flags: "LOGIN",  password: "{{ db_migrator_password }}" }
+    - { name: "{{ db_admin_role }}",  flags: "NOLOGIN" }
+    - { name: "{{ db_admin_user }}",  flags: "LOGIN",  password: "{{ db_admin_password }}" }
     - { name: "{{ readonly_user }}",  flags: "LOGIN",  password: "{{ readonly_user_password }}" }
     - { name: "{{ backup_db_user }}", flags: "LOGIN",  password: "{{ backup_db_password }}" }
 
@@ -21,9 +24,22 @@
     target_roles: "{{ app_user }}"
     state: present
 
+- name: Ensure db_migrator_user is member of app_group_role
+  community.postgresql.postgresql_membership:
+    groups: "{{ app_group_role }}"
+    target_roles: "{{ db_migrator_user }}"
+    state: present
+
+- name: Ensure db_admin_user is member of db_admin_role
+  community.postgresql.postgresql_membership:
+    groups: "{{ db_admin_role }}"
+    target_roles: "{{ db_admin_user }}"
+    state: present
+
 - name: Create database
   community.postgresql.postgresql_db:
     name: "{{ postgresql_db_name }}"
+    owner: "{{ db_admin_role }}"
     encoding: "UTF8"  # Provide support for UTF-8 encoding
     state: present
 
@@ -56,14 +72,19 @@
     login_db: "{{ postgresql_db_name }}"
     query: |
       GRANT CONNECT, TEMP ON DATABASE "{{ postgresql_db_name }}" TO "{{ app_group_role }}";
-      GRANT CONNECT ON DATABASE "{{ postgresql_db_name }}" TO "{{ readonly_user }}", "{{ backup_db_user }}", "{{ app_user }}";
+      GRANT CONNECT ON DATABASE "{{ postgresql_db_name }}" TO "{{ readonly_user }}", "{{ backup_db_user }}", "{{ app_user }}", "{{ db_migrator_user }}", "{{ db_admin_user }}";
 
-      GRANT USAGE, CREATE ON SCHEMA public TO "{{ app_group_role }}";
+      GRANT USAGE ON SCHEMA public TO "{{ app_group_role }}", "{{ db_admin_role }}";
+      GRANT USAGE, CREATE ON SCHEMA public TO "{{ db_migrator_user }}";
       GRANT USAGE ON SCHEMA public TO "{{ readonly_user }}", "{{ backup_db_user }}";
 
       GRANT SELECT, INSERT, UPDATE, DELETE
         ON ALL TABLES IN SCHEMA public
         TO "{{ app_group_role }}";
+
+      GRANT SELECT
+        ON ALL TABLES IN SCHEMA public
+        TO "{{ db_admin_role }}";
 
       GRANT SELECT
         ON ALL TABLES IN SCHEMA public
@@ -75,23 +96,31 @@
 
       GRANT USAGE, SELECT
         ON ALL SEQUENCES IN SCHEMA public
+        TO "{{ db_admin_role }}";
+
+      GRANT USAGE, SELECT
+        ON ALL SEQUENCES IN SCHEMA public
         TO "{{ backup_db_user }}";
 
-      ALTER DEFAULT PRIVILEGES FOR ROLE "{{ app_user }}"
+      GRANT USAGE, SELECT
+        ON ALL SEQUENCES IN SCHEMA public
+        TO "{{ readonly_user }}";
+
+      ALTER DEFAULT PRIVILEGES FOR ROLE "{{ db_migrator_user }}"
         IN SCHEMA public
         GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO "{{ app_group_role }}";
 
-      ALTER DEFAULT PRIVILEGES FOR ROLE "{{ app_user }}"
+      ALTER DEFAULT PRIVILEGES FOR ROLE "{{ db_migrator_user }}"
         IN SCHEMA public
-        GRANT SELECT ON TABLES TO "{{ readonly_user }}", "{{ backup_db_user }}";
+        GRANT SELECT ON TABLES TO "{{ readonly_user }}", "{{ backup_db_user }}", "{{ db_admin_role }}";
 
-      ALTER DEFAULT PRIVILEGES FOR ROLE "{{ app_user }}"
+      ALTER DEFAULT PRIVILEGES FOR ROLE "{{ db_migrator_user }}"
         IN SCHEMA public
         GRANT USAGE, SELECT, UPDATE ON SEQUENCES TO "{{ app_group_role }}";
 
-      ALTER DEFAULT PRIVILEGES FOR ROLE "{{ app_user }}"
+      ALTER DEFAULT PRIVILEGES FOR ROLE "{{ db_migrator_user }}"
         IN SCHEMA public
-        GRANT USAGE, SELECT ON SEQUENCES TO "{{ backup_db_user }}", "{{ readonly_user }}";
+        GRANT USAGE, SELECT ON SEQUENCES TO "{{ backup_db_user }}", "{{ readonly_user }}", "{{ db_admin_role }}";
 
       ALTER ROLE "{{ app_user }}" SET log_statement = 'all';
       ALTER ROLE "{{ readonly_user }}" SET log_statement = 'all';

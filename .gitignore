@@ -7,5 +7,4 @@ Ansible/group_vars/all/vault.yml
 Ansible/logs
 .gitmodules
 .dockerignore
-docker-compose.yml
-Dockerfile
+/Security

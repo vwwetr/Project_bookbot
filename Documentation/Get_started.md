@@ -86,7 +86,7 @@ Esc, wq!, Enter - выйти с сохранением
 ansible-playbook bookbot.yml -u vagrant --private-key=~/.vagrant.d/insecure_private_key --tags users --ask-vault-pass
 ```
 
-Параметры:
+Параметры:cd
 
 - `-u vagrant` — подключение под пользователем `vagrant`;
 - `--private-key=~/.vagrant.d/insecure_private_key` — стандартный Vagrant-ключ;

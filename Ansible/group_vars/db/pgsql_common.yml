@@ -69,6 +69,11 @@ app_group: "bookbot"
 app_group_role: "bookbot"
 ## Пользователь приложения
 app_user: "app_user"
+## Пользователь для миграций (DDL)
+db_migrator_user: "db_migrator"
+## Админ-роль БД (NOLOGIN) и админ-пользователь (LOGIN)
+db_admin_role: "db_admin"
+db_admin_user: "db_admin_user"
 ## Пользователь для логических бэкапов
 backup_db_user: "db_backup"
 ## Пользователь для чтения
@@ -92,6 +97,10 @@ postgresql_pg_hba:
   - { type: "host",  database: "all",              user: "all",              address: "::1/128",                method: "{{ postgresql_auth_method }}" }
   # Application:
   - { type: "host",  database: "learningbot",      user: "app_user",         address: "192.168.56.1/32",        method: "{{ postgresql_auth_method }}" }
+  # DB admin:
+  - { type: "host",  database: "all",              user: "db_admin_user",    address: "192.168.56.1/32",        method: "{{ postgresql_auth_method }}" }
+  # DB migrations:
+  - { type: "host",  database: "learningbot",      user: "db_migrator_user", address: "192.168.56.1/32",        method: "{{ postgresql_auth_method }}" }
   # dbbackup:
   - { type: "host",  database: "all",              user: "db_backup",        address: "192.168.56.213/32",      method: "{{ postgresql_auth_method }}" }
 ## Параметры для pg_hba.conf.j2

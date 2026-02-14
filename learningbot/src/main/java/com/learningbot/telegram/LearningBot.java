@@ -72,7 +72,7 @@ public class LearningBot extends TelegramLongPollingBot {
                     execute(new SendMessage(chatId, "Введите название ресурса:"));
                     conversation.startAdd();
                 } else if (text.equalsIgnoreCase("/get") || normalizedText.equals("получить ресурс")) {
-                    execute(durationKeyboard(chatId, "Выберите доступное вам время на изучение, в мин.:", CallbackMode.GET));
+                    execute(sectionKeyboard(chatId, "Выберите раздел для поиска:", "GET_SECTION:"));
                     conversation.startGet();
                 } else if (text.equalsIgnoreCase("/cancel") || normalizedText.equals("выход")) {
                     conversation.reset();
@@ -101,24 +101,24 @@ public class LearningBot extends TelegramLongPollingBot {
     private void handleConversationText(String chatId, Conversation conversation, String text) throws TelegramApiException {
         switch (conversation.state) {
             case ADD_TITLE -> {
-                conversation.draft.title = text.trim();
+                String title = text.trim();
+                if (resourceService.titleExists(title)) {
+                    execute(new SendMessage(chatId, "Этот ресурс уже есть в базе!"));
+                    conversation.reset();
+                    return;
+                }
+                conversation.draft.title = title;
                 conversation.state = State.ADD_AUTHOR;
                 execute(new SendMessage(chatId, "Введите автора в формате \"Фамилия И.О.\" или введите \"Без автора\":"));
             }
             case ADD_AUTHOR -> {
                 conversation.draft.author = text.trim();
                 conversation.state = State.ADD_TOPIC;
-                execute(topicKeyboard(chatId));
+                execute(sectionKeyboard(chatId, "Выберите раздел, к которому нужно отнести ресурс:", "TOPIC:"));
             }
-            case ADD_URL -> {
+            case ADD_URL_CUSTOM -> {
                 conversation.draft.link = normalizeUrl(text.trim());
-                boolean saved = resourceService.addResource(conversation.draft.toRecord());
-                if (saved) {
-                    execute(new SendMessage(chatId, "Ресурс сохранен."));
-                } else {
-                    execute(new SendMessage(chatId, "Этот ресурс уже есть в базе!"));
-                }
-                conversation.reset();
+                saveDraft(chatId, conversation);
             }
             default -> execute(new SendMessage(chatId, "Команда не распознана. Попробуйте /add или /get"));
         }
@@ -138,6 +138,12 @@ public class LearningBot extends TelegramLongPollingBot {
                 execute(formatKeyboard(chatId));
                 return;
             }
+            if (data.startsWith("GET_SECTION:") && conversation.state == State.GET_SECTION) {
+                conversation.draft.section = data.substring("GET_SECTION:".length());
+                conversation.state = State.GET_DURATION;
+                execute(durationKeyboard(chatId, "Выберите доступное вам время на изучение, в мин.:", CallbackMode.GET));
+                return;
+            }
             if (data.startsWith("FORMAT:") && conversation.state == State.ADD_FORMAT) {
                 conversation.draft.format = data.substring("FORMAT:".length());
                 conversation.state = State.ADD_DURATION;
@@ -146,13 +152,31 @@ public class LearningBot extends TelegramLongPollingBot {
             }
             if (data.startsWith("DURATION:") && conversation.state == State.ADD_DURATION) {
                 conversation.draft.studyTime = Integer.parseInt(data.substring("DURATION:".length()));
-                conversation.state = State.ADD_URL;
-                execute(new SendMessage(chatId, "Введите ссылку на ресурс или введите \"Нет URL\":"));
+                conversation.state = State.ADD_URL_OPTION;
+                execute(urlKeyboard(chatId));
+                return;
+            }
+            if (data.startsWith("URL:") && conversation.state == State.ADD_URL_OPTION) {
+                String option = data.substring("URL:".length());
+                if (option.equals("OTHER")) {
+                    conversation.state = State.ADD_URL_CUSTOM;
+                    execute(new SendMessage(chatId, "Введите свой вариант:"));
+                    return;
+                }
+                if (option.equals("NONE")) {
+                    conversation.draft.link = null;
+                } else {
+                    conversation.draft.link = option;
+                }
+                saveDraft(chatId, conversation);
                 return;
             }
             if (data.startsWith("GET_DURATION:") && conversation.state == State.GET_DURATION) {
                 int duration = Integer.parseInt(data.substring("GET_DURATION:".length()));
-                List<Resource> resources = resourceService.getResourcesByStudyTime(duration);
+                List<Resource> resources = resourceService.getResourcesBySectionAndStudyTime(
+                        conversation.draft.section,
+                        duration
+                );
                 if (resources.isEmpty()) {
                     execute(new SendMessage(chatId, "Ресурсов по этому времени еще нет в базе!"));
                 } else {
@@ -167,14 +191,14 @@ public class LearningBot extends TelegramLongPollingBot {
         }
     }
 
-    private SendMessage topicKeyboard(String chatId) {
-        SendMessage message = new SendMessage(chatId, "Выберите раздел, к которому нужно отнести ресурс:");
+    private SendMessage sectionKeyboard(String chatId, String text, String prefix) {
+        SendMessage message = new SendMessage(chatId, text);
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
 
-        rows.add(List.of(button("IT", "TOPIC:IT"), button("Health", "TOPIC:Health")));
-        rows.add(List.of(button("Finance", "TOPIC:Finance"), button("Lifestyle", "TOPIC:Lifestyle")));
-        rows.add(List.of(button("Network", "TOPIC:Network"), button("Spiritual", "TOPIC:Spiritual")));
+        rows.add(List.of(button("IT", prefix + "IT"), button("Health", prefix + "Health")));
+        rows.add(List.of(button("Finance", prefix + "Finance"), button("Lifestyle", prefix + "Lifestyle")));
+        rows.add(List.of(button("Network", prefix + "Network"), button("Spiritual", prefix + "Spiritual")));
 
         markup.setKeyboard(rows);
         message.setReplyMarkup(markup);
@@ -202,6 +226,20 @@ public class LearningBot extends TelegramLongPollingBot {
 
         rows.add(List.of(button("15", prefix + "15"), button("30", prefix + "30"), button("60", prefix + "60")));
         rows.add(List.of(button("90", prefix + "90"), button("120", prefix + "120")));
+
+        markup.setKeyboard(rows);
+        message.setReplyMarkup(markup);
+        return message;
+    }
+
+    private SendMessage urlKeyboard(String chatId) {
+        SendMessage message = new SendMessage(chatId, "Выберите вариант URL ресурса:");
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+
+        rows.add(List.of(button("Яндекс.Книги", "URL:Яндекс.Книги"), button("ICloud", "URL:ICloud")));
+        rows.add(List.of(button("AppleMusic", "URL:AppleMusic"), button("Ibooks", "URL:Ibooks")));
+        rows.add(List.of(button("Ресурс отсутствует", "URL:NONE"), button("Другое", "URL:OTHER")));
 
         markup.setKeyboard(rows);
         message.setReplyMarkup(markup);
@@ -238,6 +276,16 @@ public class LearningBot extends TelegramLongPollingBot {
         return value;
     }
 
+    private void saveDraft(String chatId, Conversation conversation) throws TelegramApiException {
+        boolean saved = resourceService.addResource(conversation.draft.toRecord());
+        if (saved) {
+            execute(new SendMessage(chatId, "Ресурс сохранен."));
+        } else {
+            execute(new SendMessage(chatId, "Этот ресурс уже есть в базе!"));
+        }
+        conversation.reset();
+    }
+
     private String formatResourceList(List<Resource> resources) {
         StringBuilder builder = new StringBuilder("Подходящие ресурсы:\n");
         for (Resource resource : resources) {
@@ -265,7 +313,9 @@ public class LearningBot extends TelegramLongPollingBot {
         ADD_TOPIC,
         ADD_FORMAT,
         ADD_DURATION,
-        ADD_URL,
+        ADD_URL_OPTION,
+        ADD_URL_CUSTOM,
+        GET_SECTION,
         GET_DURATION
     }
 
@@ -284,7 +334,7 @@ public class LearningBot extends TelegramLongPollingBot {
         }
 
         void startGet() {
-            this.state = State.GET_DURATION;
+            this.state = State.GET_SECTION;
         }
 
         void reset() {

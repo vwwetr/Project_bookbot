@@ -1,0 +1,74 @@
+version: '3.7'
+
+services:
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    ports:
+      - "8080:8080"  # Порт для доступа к Jenkins
+      - "50000:50000"  # Порт для агентов Jenkins
+    volumes:
+      - jenkins_data:/var/jenkins_home  # Сохраняет данные Jenkins между перезапусками
+      - /var/run/docker.sock:/var/run/docker.sock  # Для взаимодействия с Docker
+      - ~/.ssh/jenkins-test-stage/:/.ssh  # Монтирование SSH-ключей в контейнер
+    environment:
+      DOCKER_HOST: "tcp://docker:2375"  # Подключение к Docker Daemon
+    networks:
+      - jenkins_network
+    restart: unless-stopped
+    depends_on:
+      - docker
+
+  docker:
+    image: docker:19.03.12-dind  # Используется официальный образ Docker-in-Docker
+    container_name: docker
+    privileged: true  # Для разрешения Docker внутри Docker
+    environment:
+      DOCKER_TLS_CERTDIR: ""  # Отключает TLS
+    command: ["--host", "tcp://0.0.0.0:2375"]  # Открытие порта Docker Daemon для Jenkins
+    networks:
+      - jenkins_network
+    restart: unless-stopped
+  
+  sonarqube:
+    container_name: sonar
+    image: sonarqube:9.9.1-community
+    restart: unless-stopped
+    networks:
+      jenkins_network:
+        ipv4_address: 172.18.0.5
+    ports:
+      - 9000:9000
+    volumes:
+      - "sonarqube_extensions:/opt/sonarqube/extensions"
+      - "sonarqube_data:/opt/sonarqube/data"
+      - "sonarqube_logs:/opt/sonarqube/logs"
+
+  maildev:
+    container_name: maildev
+    image: maildev/maildev:2.1.0
+    hostname: "maildev.example.ru"
+    restart: unless-stopped
+    networks:
+      jenkins_network:
+        ipv4_address: 172.18.0.4
+    ports:
+      - 1080:1080 # maildev - web application 
+      - 1025:1025 # jenkins will use 'mail:1025' to send emails
+
+volumes:
+  jenkins_data:
+    driver: local
+  sonarqube_extensions:
+    driver: local
+  sonarqube_data:
+    driver: local
+  sonarqube_logs:
+    driver: local
+
+networks:
+  jenkins_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.18.0.0/16

@@ -4,6 +4,7 @@ import com.learningbot.domain.Resource;
 import com.learningbot.repository.ResourceRepository;
 import org.springframework.stereotype.Service;
 
+import java.text.Normalizer;
 import java.util.List;
 import java.util.Locale;
 
@@ -22,14 +23,7 @@ public class ResourceService {
         String normalizedSection = normalize(draft.section());
         String normalizedFormat = normalize(draft.format());
 
-        boolean exists = resourceRepository
-                .existsByNormalizedTitleAndNormalizedAuthorAndNormalizedSectionAndNormalizedFormatAndStudyTime(
-                        normalizedTitle,
-                        normalizedAuthor,
-                        normalizedSection,
-                        normalizedFormat,
-                        draft.studyTime()
-                );
+        boolean exists = resourceRepository.existsByNormalizedTitle(normalizedTitle);
 
         if (exists) {
             return false;
@@ -55,12 +49,22 @@ public class ResourceService {
         return resourceRepository.findByStudyTime(studyTime);
     }
 
+    public List<Resource> getResourcesBySectionAndStudyTime(String section, int studyTime) {
+        return resourceRepository.findBySectionAndStudyTime(section, studyTime);
+    }
+
+    public boolean titleExists(String title) {
+        return resourceRepository.existsByNormalizedTitle(normalize(title));
+    }
+
     private String normalize(String value) {
         if (value == null) {
             return "";
         }
         String trimmed = value.trim().replaceAll("\\s+", " ");
-        return trimmed.toLowerCase(Locale.ROOT);
+        String lowercased = trimmed.toLowerCase(Locale.ROOT);
+        String normalized = Normalizer.normalize(lowercased, Normalizer.Form.NFD);
+        return normalized.replaceAll("\\p{M}", "");
     }
 
     public record ResourceDraft(
