@@ -26,4 +26,4 @@ Telegram learning bot on JavaSpringBoot.
 - Linux: `/Documentation/Linux_readme.md`; (Pending)
 - Nginx: `/Documentation/Nginx_readme.md`; (Pending)
 - Net: `/Documentation/Net_readme.md`; (Pending)
-- K8s: https://habr.com/ru/companies/beeline_cloud/articles/864222/ (+ minikube, пока что, описан  в доке Application)
+- K8s: https://habr.com/ru/companies/beeline_cloud/articles/864222/ (+ minikube, пока что, описан  в доке Application)d

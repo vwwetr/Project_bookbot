@@ -42,63 +42,51 @@
     - ловить ошибку уникальности при вставке и говорить «такая книга уже есть»
     - либо перед вставкой спросить БД: «есть ли уже такая нормализованная книга?».
 ## Роли и их права в базе данных:
-- postgres (Роль, для работы непосредственно с БД)
-- postgres (Пользователь, для управления БД на уровне системы)
-- bookbot_app_role
-    - Групповая роль “боевого приложения”, которая описывает, что любой её член имеет полный RW-доступ к данным конкретного сервиса (бота).
-    - NOLOGIN, сервисная группа
-    - Права: 
-        - GRANT CONNECT, TEMP ON DATABASE bookbot_db TO bookbot_app_role;
-            - CONNECT — можно подключаться к БД bookbot_db;
-            - TEMP — можно создавать временные таблицы в этой БД.
-        - GRANT USAGE, CREATE ON SCHEMA public TO bookbot_app_role;
-            - USAGE — можно пользоваться объектами внутри схемы (таблицами, типами и т.п.);
-            - CREATE — можно создавать новые объекты в public (таблицы, индексы, последовательности, функции).ё
-        - GRANT SELECT, INSERT, UPDATE, DELETE
-            ON ALL TABLES IN SCHEMA public
-            TO bookbot_app_role;
-                - Полный стандартный DML-набор приложению для нормальной работы с данными,без«жёстких» операций наподобие TRUNCATE для всех таблиц.
-        - GRANT USAGE, SELECT, UPDATE
-            ON ALL SEQUENCES IN SCHEMA public
-            TO bookbot_app_role;
-                - USAGE — можно вызывать nextval() / currval() (нормальная работа SERIAL/IDENTITY);
-                - SELECT — можно читать текущее значение;
-                - UPDATE — можно менять значение через setval().
-        - На неё завязаны права на БД/схему/таблицы;
-        - В неё ты будут добавляться все RW-пользователей приложения.
-    - Чего у роли нет:
-        - Кластерных прав (CREATEDB, CREATEROLE, SUPERUSER, REPLICATION);
-        - Прав на другие базы;
-        - Никаких прямых DDL-привилегий типа ALTER DATABASE, ALTER SYSTEM и т.п. (админится на уровне кластера)
-- app_user — LOGIN, рабочий пользователь приложения:
-    - член bookbot_app_role;
-    - ходит из Spring Boot.
+- postgres (DB-роль, суперпользователь)
+    - Полный доступ к кластеру PostgreSQL.
+    - Используется для администрирования на уровне кластера.
+- db_admin_role (NOLOGIN)
+    - Владелец базы данных `learningbot`.
+    - Может выполнять DDL на уровне БД, включая `DROP DATABASE`.
+    - Не является SUPERUSER.
+    - Имеет read-only доступ к данным: SELECT на таблицы и USAGE/SELECT на sequences (для просмотра состояния и pg_dump).
+- db_admin_user (LOGIN)
+    - Член `db_admin_role`, используется для админских задач без суперправ.
+    - Может делать простые SELECT и pg_dump, а также DROP DATABASE (как владелец через роль).
+- bookbot (app_group_role, NOLOGIN)
+    - Групповая роль приложения: все DML-права на данные.
     - Права:
-        - Может подключаться к bookbot_db;
-        - Может создавать объекты в public (таблицы, индексы и т.п.);
-        - Может выполнять полный DML над таблицами в public;
-        - Может нормально работать с последовательностями.
-- readonly_user — LOGIN, read-only:
-    - Получает CONNECT + SELECT на таблицы напрямую (без отдельной RO-группы, чтобы не раздувать схему).
-- app_group_role — это group-role, которая инкапсулирует все права приложения. Login-пользователи получают доступ только через неё, что позволяет безопасно управлять правами, делать ротацию пользователей и соблюдать RBAC.
-### Логика любого модуля с ensure:
-- Проверить, существует ли роль app_user.
-- Если нет — создать.
-- Если есть, но параметры отличаются (флаги, пароль и т.п.) — изменить.
-- Если всё совпадает — ничего не делать.
-- Это классический паттерн idempotent state: “сделай так, чтобы было вот так”, а не “выполни команду CREATE ROLE …”.
-- То есть по сути операция не “создать”, а “убедиться, что роль существует с нужными свойствами”.
-- Имя таски — это описание смыла для всех прогонов, а не только для первого.
-    - Таск не разовый, а долгоживущий — он должен быть корректным и на 1-й, и на 100-й прогон.
-    - Поэтому “Ensure …” семантически точнее для idempotent кода.
-- В плоскости IaC:
-    "В IaC я не пишу сценарий действий, я описываю целевое состояние.
-    Таска Ensure X — это декларация: “объект X должен быть в таком виде”.
-    Дальше инструмент сам решает, нужно ли его создать, изменить или оставить как есть.
-    Поэтому слово “Ensure” лучше отражает идеологию IaC, чем “Create”, которое звучит как одноразовая операция."
+        - CONNECT, TEMP на базу `learningbot`.
+        - USAGE на схему `public` (без CREATE).
+        - SELECT, INSERT, UPDATE, DELETE на все таблицы в `public`.
+        - USAGE, SELECT, UPDATE на все sequences в `public`.
+    - Не имеет кластерных прав (CREATEDB, CREATEROLE, SUPERUSER).
+- app_user (LOGIN)
+    - Член `bookbot`, используется приложением (Spring Boot).
+    - Только DML-права, без CREATE/DDL.
+- db_migrator_user (LOGIN)
+    - Роль для миграций (DDL).
+    - Член `bookbot` и имеет CREATE на `public`.
+    - Все новые объекты, созданные этой ролью, автоматически получают нужные права (через ALTER DEFAULT PRIVILEGES).
+- readonly_user (LOGIN)
+    - Read-only доступ.
+    - CONNECT на БД, USAGE на `public`, SELECT на все таблицы, USAGE/SELECT на все sequences.
+- db_backup (LOGIN)
+    - Доступ для `pg_dump`.
+    - CONNECT на БД, USAGE на `public`, SELECT на все таблицы, USAGE/SELECT на все sequences.
 ## DDL, DML, DCL, TCL
-- GRANT <список_привилегий> ON <тип_объекта> <объект(ы)> TO <роль(и)> [WITH GRANT OPTION]; ### DCL (Data Control Language)
-    - ALTER DEFAULT PRIVILEGES: “для всех ТАБЛИЦ, которые в будущем создаст app_user в схеме public, автоматически сделай GRANT таких-то прав таким-то ролям”.
+- DDL (CREATE/ALTER/DROP)
+    - Выполняется ролью `db_migrator_user`.
+    - CREATE в `public` выдан только этой роли.
+- DML (SELECT/INSERT/UPDATE/DELETE)
+    - Выполняется через `app_user` (член `bookbot`).
+    - `readonly_user`, `db_backup`, `db_admin_user` — только SELECT.
+- DCL (GRANT/REVOKE, ALTER DEFAULT PRIVILEGES)
+    - Пример:
+        - GRANT <привилегии> ON <объекты> TO <роли>;
+        - ALTER DEFAULT PRIVILEGES: “для всех объектов, которые в будущем создаст db_migrator_user в схеме public, автоматически сделать GRANT таких-то прав таким-то ролям”.
+- TCL (BEGIN/COMMIT/ROLLBACK)
+    - Управление транзакциями на уровне приложений/скриптов.
 ## Уникальный индекс в базе данных
 В логике бота / Spring Boot:
     - при вставке книги просто записываешь поле title как есть;
@@ -108,7 +96,7 @@
 SELECT *
 FROM books
 WHERE lower(trim(unaccent(title))) = lower(trim(unaccent(:title_in)));
-```
+``` 
     - если попытаешься вставить «логический дубль» — поймаешь unique constraint violation по индексу books_normalized_title_unique
 ## Настройка бекапа
 - pg_dump (custom, выбран по best practise как наиболее оптимальный)
@@ -126,19 +114,33 @@ WHERE lower(trim(unaccent(title))) = lower(trim(unaccent(:title_in)));
     - Node5: запасной репозиторий (внутрикластерная копия на localhost).
     - Внутреннее резервирование — копия бэкапов с Node4 на Node5.
     - Внешнее резервирование — периодический экспорт бэкапов (с Node4 или Node5) на хостовый Mac / внешний диск. Mac host / внешнее хранилище: off-site уровень.
+## Drop Database
+```sh
+ls -1t /var/backups/postgresql/app_bot/*.dump.gz | head -1 # На ноде с дампом
+
+```
 ## Database debug
-    - Статус сервиса с логом: sudo systemctl status postgresql-16.service -l
-    - Последние строки журнала: sudo journalctl -xeu postgresql-16.service | tail -n 50
-    - Подключиться к базе: psql -h 192.168.56.210 -U db_backup -d learningbot
-        - SELECT current_user; - проверить текущего пользователя; 
-    - Пользовательский крон: /var/spool/cron/db_backup
-    - Скрипт дампа: /opt/postgresql/app_bot/sql/pg_backup.sh
-    - Дампы БД: /var/backups/postgresql/app_bot
-    - Логи крона: /var/log/cron
-    - Логи скрипта pg_dump: /var/log/pgbackup/app_bot
-    - \dp public.book_id_seq - выводит данные из системных каталогов (pg_class.relacl) в человекочитаемом виде.
-    - Залогиниться под postgres (только с ноды db):
-        sudo -u postgres -i & psql -d learningbot
-        sudo su postgres && psql -d learningbot
-    - Посмотреть активность в базе: 
-        SELECT * FROM pg_stat_activity;
+```sh
+sudo less /var/spool/cron/db_backup # Пользовательский крон:
+sudo less /opt/postgresql/app_bot/sql/pg_backup.sh # Скрипт дампа (на ноде Logging)
+sudo systemctl status postgresql-16.service -l # Статус сервиса с логом: 
+sudo journalctl -xeu postgresql-16.service | tail -n 50 # Последние строки журнала: 
+psql -h 192.168.56.210 -U app_user -d learningbot # Подключиться к базе: 
+sudo -u postgres -i & psql -d learningbot #Залогиниться под postgres (только с ноды db)
+sudo -i; cd /var/backups/postgresql/app_bot #Дампы БД
+sudo less /var/log/cron #Дампы БД
+# PostgeSQL:
+\? # выводит полный список всех метакоманд терминала psql
+\h # выводит полный список всех SQL-команд
+\x # Расширить вывод 
+\x auto # Расширение выывода команд в автоматическом режиме
+\l # 
+SELECT current_user; # Проверить текущего пользователя; 
+SELECT * FROM pg_roles; #  Показать вообще всё, что база знает о существующих ролях
+SELECT * FROM pg_stat_activity; # Посмотреть активность в базе
+\drg # Показывает детальное дерево членства в ролях и параметры их наследования.
+\dp # Выводит права доступа (ACL) для конкретных таблиц и представлений.
+\du (\dg) # Выводит список ролей и их прав доступа
+\dp public.book_id_seq # выводит данные из системных каталогов (pg_class.relacl) в человекочитаемом виде. 
+/var/log/pgbackup/app_bot
+```

@@ -41,7 +41,6 @@ spec: # Pod Management specification of the desired behavior of the deployment. 
             timeoutSeconds: 2
             failureThreshold: 3
 
-
 # Значения времени в пробах — это не “магические дефолты”, а компромисс между скоростью реакции кластера и риском ложных срабатываний. 
 # Best practice в k8s: параметры выбирают из измерений (сколько реально стартует приложение и как быстро отвечает endpoint),
 # а для долгого старта — используют startupProbe, чтобы liveness не убивал контейнер во время прогрева.
