@@ -1,0 +1,83 @@
+---
+- name: Must run locally
+  ansible.builtin.assert:
+    that:
+      - ansible_connection == "local" or inventory_hostname in ["localhost", "127.0.0.1"]
+    fail_msg: "Эта роль должна запускаться локально на машине с Minikube и Docker Desktop."
+  delegate_to: localhost
+
+- name: Install minikube (Homebrew)
+  community.general.homebrew:
+    name: minikube
+    state: present
+
+- name: Install kubectl (Homebrew)
+  community.general.homebrew:
+    name: kubectl
+    state: present
+
+- name: Check minikube status
+  ansible.builtin.command: "{{ minikube_cmd_prefix }} status"
+  register: mk_status
+  changed_when: false
+  failed_when: false
+
+- name: Start minikube if not running
+  ansible.builtin.command: "{{ minikube_cmd_prefix }} start --driver=docker --force"
+  when: mk_status.stdout is not search("Running")
+
+- name: Build image
+  ansible.builtin.command: "docker build -t {{ learningbot_image }} {{ learningbot_app_dir }}"
+  args:
+    chdir: "{{ learningbot_app_dir }}"
+  register: build_out
+  changed_when: "'Successfully built' in build_out.stdout"
+
+- name: Check minikube images
+  ansible.builtin.command: "{{ minikube_cmd_prefix }} image ls"
+  register: mk_images
+  changed_when: false
+
+- name: Load image to minikube
+  ansible.builtin.command: "{{ minikube_cmd_prefix }} image load --overwrite=true {{ learningbot_image }}"
+  when: mk_images.stdout is not search('^' ~ learningbot_image | regex_escape ~ '$', multiline=True)
+
+- name: Ensure namespace
+  ansible.builtin.shell: |
+    set -o pipefail
+    kubectl --kubeconfig {{ kubeconfig_path }} create namespace {{ learningbot_namespace }} --dry-run=client -o yaml \
+      | kubectl --kubeconfig {{ kubeconfig_path }} apply -f -
+  changed_when: false
+
+- name: Ensure serviceaccount
+  ansible.builtin.shell: |
+    set -o pipefail
+    kubectl --kubeconfig {{ kubeconfig_path }} -n {{ learningbot_namespace }} create serviceaccount {{ learningbot_serviceaccount }} --dry-run=client -o yaml \
+      | kubectl --kubeconfig {{ kubeconfig_path }} apply -f -
+  changed_when: false
+
+- name: Ensure secret from env file
+  ansible.builtin.shell: |
+    set -o pipefail
+    kubectl --kubeconfig {{ kubeconfig_path }} -n {{ learningbot_namespace }} create secret generic {{ learningbot_secret_name }} --from-env-file={{ learningbot_env_file }} --dry-run=client -o yaml \
+      | kubectl --kubeconfig {{ kubeconfig_path }} apply -f -
+  no_log: true
+  changed_when: false
+
+- name: Apply manifests
+  ansible.builtin.command: "kubectl --kubeconfig {{ kubeconfig_path }} -n {{ learningbot_namespace }} apply -f {{ learningbot_k8s_dir }}/learningbot-deploy.yaml"
+  changed_when: false
+
+- name: Apply service
+  ansible.builtin.command: "kubectl --kubeconfig {{ kubeconfig_path }} -n {{ learningbot_namespace }} apply -f {{ learningbot_k8s_dir }}/learningbot-service.yaml"
+  changed_when: false
+
+- name: Wait for deployment rollout
+  ansible.builtin.command: >
+    kubectl -n {{ learningbot_namespace }}
+    rollout status deploy/learningbot --timeout=120s
+  changed_when: false
+
+- name: Show pod status
+  ansible.builtin.command: "kubectl -n {{ learningbot_namespace }} get pods -o wide"
+  changed_when: false

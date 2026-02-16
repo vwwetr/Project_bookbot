@@ -94,4 +94,6 @@ https://habr.com/ru/articles/815479/
 ```sh
 ip route | grep default # Узнать адрес хоста Vagrant запросом с любой ноды
 arp -n # Узнать адрес хоста Vagrant запcросом с любой ноды
+lsof -i -P | grep LISTEN # Посмотреть открытые порты на localhost
+nc -zv localhost 22 # Проверить доступность 22 порта на localhost
 ```

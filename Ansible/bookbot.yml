@@ -15,8 +15,10 @@
   roles:
     - role: pg_install
       become_user: root
+      tags: ['pg_install']
     - role: db_create
       become_user: postgres
+      tags: ['db_create']
 
 - name: Set up and turn on backup on Logging nodes
   hosts: log
@@ -24,3 +26,12 @@
   roles:
     - role: db_backup
       become_user: root
+      tags: ['db_backup']
+
+- name: Local Minikube + App
+  hosts: App_localhost
+  connection: local
+  gather_facts: false
+  roles:
+    - role: app_k8s
+      tags: ['app_k8s']

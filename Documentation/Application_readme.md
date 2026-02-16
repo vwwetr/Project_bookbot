@@ -101,7 +101,7 @@ source .env.local && mvn -DskipTests spring-boot:run
 mvn -DskipTests package # Из директории /learningbot
 brew install minikube
 brew install kubectl
-minikube start --driver=docker --alsologtostderr -v=7
+minikube start --driver=docker
 docker build --no-cache -t learningbot:6dcebd2 . # 6dcebd2 - хэш последнего удачного коммита
 kubectl create namespace learningbot --dry-run=client -o yaml | kubectl apply -f - # Гарантирует наличие namespace learningbot без прерывания скрипта при повторном запуске
 kubectl -n learningbot create serviceaccount learningbot-sa

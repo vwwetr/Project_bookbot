@@ -1,0 +1,15 @@
+learningbot_namespace: learningbot
+learningbot_serviceaccount: learningbot-sa
+learningbot_secret_name: learningbot-secret
+
+learningbot_app_dir: "{{ playbook_dir }}/../learningbot"
+learningbot_k8s_dir: "{{ playbook_dir }}/../learningbot/k8s"
+learningbot_env_file: "{{ playbook_dir }}/../learningbot/.env.local"
+
+learningbot_image_repo: learningbot
+learningbot_image_tag: "6dcebd2"
+learningbot_image: "{{ learningbot_image_repo }}:{{ learningbot_image_tag }}"
+
+minikube_profile: ""
+minikube_cmd_prefix: "{{ 'minikube --profile ' ~ minikube_profile if (minikube_profile | default('') | string | length) > 0 else 'minikube' }}"
+kubeconfig_path: "{{ lookup('env', 'KUBECONFIG') | default('~/.kube/config', true) }}"
