@@ -1,0 +1,7 @@
+- name: Local Minikube + App
+  hosts: App_localhost
+  connection: local
+  gather_facts: false
+  roles:
+    - role: app_k8s
+      tags: ['app_k8s']

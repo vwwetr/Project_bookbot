@@ -20,7 +20,7 @@ sudo install -d -m 700 -o ansible -g staff /Users/ansible/.ssh
 sudo sh -c 'cat /Users/vwwetr/.ssh/ansible_id_ed25519.pub >> /Users/ansible/.ssh/authorized_keys'
 sudo chown ansible:staff /Users/ansible/.ssh/authorized_keys
 sudo chmod 600 /Users/ansible/.ssh/authorized_keys
-ssh -i /Users/vwwetr/.ssh/ansible_id_ed25519 ansible@127.0.0.1
+ssh -i /Users/vwwetr/.ssh/ansible_id_ed25519 ansible@127.0.0.1w
 
 ansible all -m ping # вызов модуля ping и проверка подключения
 ansible all -m setup # отображает факты сервера (аппаратная архитектура, название системы, IP адреса, состтояние памяти и др.)

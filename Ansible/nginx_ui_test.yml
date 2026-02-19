@@ -1,5 +1,0 @@
-- name: Nginx UI
-  hosts: ngx
-  become: true
-  roles:
-    - nginx_ui

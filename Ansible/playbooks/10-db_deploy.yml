@@ -1,0 +1,11 @@
+---
+- name: Set up PostgreSQL, create DB and give permissons to users on Database node
+  hosts: db
+  become: true
+  roles:
+    - role: pg_install
+      become_user: root
+      tags: ['pg_install']
+    - role: db_create
+      become_user: postgres
+      tags: ['db_create']

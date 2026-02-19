@@ -2,6 +2,7 @@
 .git
 .vagrant
 .vscode
+.ansible
 Someshit/
 Ansible/group_vars/all/vault.yml
 Ansible/logs
@@ -9,3 +10,4 @@ Ansible/logs
 .dockerignore
 /Security
 /Jenkins/Jenkinsfile
+/Jenkins/cli_token.env

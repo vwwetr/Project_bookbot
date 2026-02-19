@@ -1,0 +1,7 @@
+---
+- name: Add needed users to all cluster
+  hosts: cluster
+  become: true
+  roles:
+    - role: cluster_users
+      tags: ['users']   
