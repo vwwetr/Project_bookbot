@@ -1,4 +1,4 @@
-- import_playbook: playbooks/00-cluster_users.yml
-- import_playbook: playbooks/10-db_deploy.yml
-- import_playbook: playbooks/20-db_backup.yml
-- import_playbook: playbooks/30-app_k8s_deploy.yml
+- import_playbook: cluster_users.yml
+- import_playbook: db_deploy.yml
+- import_playbook: db_backup.yml
+- import_playbook: app_k8s_deploy.yml

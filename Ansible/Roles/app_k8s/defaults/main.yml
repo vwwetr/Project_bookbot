@@ -2,9 +2,9 @@ learningbot_namespace: learningbot
 learningbot_serviceaccount: learningbot-sa
 learningbot_secret_name: learningbot-secret
 
-learningbot_app_dir: "{{ playbook_dir }}/../learningbot"
-learningbot_k8s_dir: "{{ playbook_dir }}/../learningbot/k8s"
-learningbot_env_file: "{{ playbook_dir }}/../learningbot/.env.local"
+learningbot_app_dir: "{{ playbook_dir }}/../../learningbot"
+learningbot_k8s_dir: "{{ playbook_dir }}/../../learningbot/k8s"
+learningbot_env_file: "{{ playbook_dir }}/../../learningbot/.env.local"
 
 learningbot_image_repo: learningbot
 learningbot_image_tag: "6dcebd2"
