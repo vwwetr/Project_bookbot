@@ -10,12 +10,15 @@ pipeline {
         timestamps()
     }
 
+    parameters {
+        choice(
+        name: 'ANSIBLE_VERBOSE',
+        choices: ['', '-v', '-vv', '-vvv'],
+        description: 'Ansible verbosity level'
+        )
+    }
+
     stages {
-        stage('Checkout git repo') {
-            steps {
-                checkout scm
-            }
-        }
 
         stage('Validate ansible playbook') {
             steps {
