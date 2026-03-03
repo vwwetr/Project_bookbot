@@ -3,6 +3,7 @@ pipeline {
 
     options {
         timestamps()
+        skipDefaultCheckout(true)
     }
 
     parameters {
@@ -16,6 +17,17 @@ pipeline {
     }
 
     stages {
+
+        stage('Checkout') {
+            steps {
+                // 1) Полная очистка workspace до начала (убивает "старый Project_bookbot")
+                cleanWs()
+                // 2) Checkout в поддиректорию, чтобы все последующие dir(...) работали детерминированно
+                dir('Project_bookbot') {
+                    checkout scm
+                }
+            }
+        }
 
         stage('Validate ansible playbook') {
             steps {

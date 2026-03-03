@@ -48,23 +48,71 @@ git rev-parse develop                                           # Вывести
 ``` 
 
 ### Typical work scenario in `develop` branch (before `master` release)
-- Перейти в `develop`;
-- Внести необходимые изменения (например, закрыли задачу в Jira с тегом PBB-1);
-- Далее:
-``` bash
+
+**Актуализировать локальный репозиторий и перейти в `develop`:**
+
+```bash
+git fetch --all --prune
+git checkout develop
+git pull --ff-only origin develop
+```
+
+**Убедиться, что рабочее дерево чистое:**
+
+```bash
+git status -sb
+```
+
+- Внести необходимые изменения (например, закрыли задачу в Jira с тегом PBB-1).
+
+**Далее:**
+
+```bash
 git add --all
-git commit -m "PBB-1 v.0.4.0 Builded PostgreSQL database"
-git push
+git commit -m "PBB-1 v0.4.0 Build PostgreSQL database"
+git push origin develop
 ```
 
 ### Typical release scenario in `master` by pull request (for example, version will be `1.0.0`)
-- Убедиться, что все задачи для релиза завершены и закоммичены в `develop`;
-- Запушить актуальное состояние `develop`:
+
+- Убедиться, что все задачи для релиза завершены и закоммичены в `develop`.
+
+**Актуализировать локальный develop перед созданием PR:**
+
+```bash
+git fetch --all --prune
+git checkout develop
+git pull --ff-only origin develop
+```
+
+**На GitHub открыть Pull Request:**
+
+base: master ← compare: develop
+
+**После ревью и проверки — выполнить merge PR в master.**
+
+**Синхронизировать локальный репозиторий после merge:**
+
+```bash
+git fetch --all --prune
+git checkout master
+git pull --ff-only origin master
+```
+
+**Выполнить обратную синхронизацию master → develop (обязательно после каждого релиза):**
+
 ```bash
 git checkout develop
-git push
+git merge --ff-only origin/master || git merge origin/master
+git push origin develop
 ```
-- На GitHub открыть Pull Request: base: master ← compare: develop;
-- После ревью и проверки — выполнить merge PR в master;
-- Пометить релиз тегом (например, v1.0.0) и обновить статус задач в Jira.
-    - Порядок присвоения версий - см. `Lightweight Git Workflow + Jira Integration description` в шапке этого readme.
+
+**Пометить релиз тегом (например, v1.0.0) и обновить статус задач в Jira:**
+
+```bash
+git checkout master
+git tag -a v1.0.0 -m "Release v1.0.0"
+git push origin v1.0.0
+```
+
+Порядок присвоения версий — см. `Lightweight Git Workflow + Jira Integration description` в шапке этого README.
