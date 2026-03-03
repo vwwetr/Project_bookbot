@@ -11,11 +11,11 @@ pipeline {
     }
 
     parameters {
-        choice(
-        name: 'ANSIBLE_VERBOSE',
-        choices: ['', '-v', '-vv', '-vvv'],
-        description: 'Ansible verbosity level'
-        )
+        choice(name: 'ANSIBLE_VERBOSE', choices: ['', '-v', '-vv', '-vvv'], description: 'Ansible verbosity level')
+    }
+
+    environment {
+        ANSIBLE_VERBOSE = "${params.ANSIBLE_VERBOSE}"
     }
 
     stages {
@@ -44,8 +44,7 @@ pipeline {
                             --tags users \
                             -u vagrant \
                             --private-key "$VAGRANT_KEY_FILE" \
-                            --vault-password-file "$VAULT_PASS_FILE" \
-                            ${params.ANSIBLE_VERBOSE}
+                            --vault-password-file "$VAULT_PASS_FILE" $ANSIBLE_VERBOSE
                         '''
                     }
                 }
@@ -61,8 +60,7 @@ pipeline {
                         sh '''
                             ansible-playbook site.yml \
                             --tags pg_install \
-                            --vault-password-file "$VAULT_PASS_FILE" \
-                            ${params.ANSIBLE_VERBOSE}
+                            --vault-password-file "$VAULT_PASS_FILE" $ANSIBLE_VERBOSE
                         '''
                     }
                 }
@@ -78,8 +76,7 @@ pipeline {
                         sh '''
                             ansible-playbook site.yml \
                             --tags db_create \
-                            --vault-password-file "$VAULT_PASS_FILE" \
-                            ${params.ANSIBLE_VERBOSE}
+                            --vault-password-file "$VAULT_PASS_FILE" $ANSIBLE_VERBOSE
                         '''
                     }
                 }
@@ -95,8 +92,7 @@ pipeline {
                         sh '''
                             ansible-playbook site.yml \
                             --tags db_backup \
-                            --vault-password-file "$VAULT_PASS_FILE" \
-                            ${params.ANSIBLE_VERBOSE}
+                            --vault-password-file "$VAULT_PASS_FILE" $ANSIBLE_VERBOSE
                         '''
                     }
                 }
@@ -114,8 +110,7 @@ pipeline {
                         ansible-playbook site.yml \
                             --tags app_k8s \
                             --vault-password-file "$VAULT_PASS_FILE" \
-                            --extra-vars "app_secrets_file=$APP_SECRETS_FILE" \
-                            ${params.ANSIBLE_VERBOSE}
+                            --extra-vars "app_secrets_file=$APP_SECRETS_FILE" $ANSIBLE_VERBOSE
                         '''
                     }
                 }
