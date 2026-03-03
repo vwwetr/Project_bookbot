@@ -1,11 +1,6 @@
 pipeline {
     agent { label 'host' }
 
-    environment {
-        ANSIBLE_BIN = tool name: 'Ansible_2.19.3', type: 'ansible'
-        PATH = "${ANSIBLE_HOME}/bin:${env.PATH}"
-    }
-
     options {
         timestamps()
     }
@@ -15,6 +10,8 @@ pipeline {
     }
 
     environment {
+        ANSIBLE_BIN = tool name: 'Ansible_2.19.3', type: 'ansible'
+        PATH = "${ANSIBLE_HOME}/bin:${env.PATH}"
         ANSIBLE_VERBOSE = "${params.ANSIBLE_VERBOSE}"
     }
 
