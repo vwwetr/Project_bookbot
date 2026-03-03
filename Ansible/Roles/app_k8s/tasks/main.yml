@@ -56,12 +56,11 @@
   ansible.builtin.shell: |
     set -o pipefail
     kubectl create secret generic {{ learningbot_secret_name }} \
-      --from-env-file="{{ env_local_file }}" \
+      --from-env-file="{{ app_secrets_file }}" \
       -n {{ learningbot_namespace }} \
       --dry-run=client -o yaml | kubectl apply -f -
   args:
     chdir: "{{ learningbot_app_dir }}"
-  no_log: false
   changed_when: false
 
 - name: Load image to minikube
