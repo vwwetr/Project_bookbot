@@ -10,6 +10,14 @@ pipeline {
         timestamps()
     }
 
+    parameters {
+        choice(
+        name: 'ANSIBLE_VERBOSE',
+        choices: ['', '-v', '-vv', '-vvv'],
+        description: 'Ansible verbosity level'
+        )
+    }
+
         stage('Validate ansible playbook') {
             steps {
                 dir('Project_bookbot/Ansible') {
