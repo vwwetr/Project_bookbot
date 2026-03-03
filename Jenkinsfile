@@ -44,7 +44,8 @@ pipeline {
                             --tags users \
                             -u vagrant \
                             --private-key "$VAGRANT_KEY_FILE" \
-                            --vault-password-file "$VAULT_PASS_FILE"
+                            --vault-password-file "$VAULT_PASS_FILE" \
+                            ${params.ANSIBLE_VERBOSE}
                         '''
                     }
                 }
@@ -60,7 +61,8 @@ pipeline {
                         sh '''
                             ansible-playbook site.yml \
                             --tags pg_install \
-                            --vault-password-file "$VAULT_PASS_FILE"
+                            --vault-password-file "$VAULT_PASS_FILE" \
+                            ${params.ANSIBLE_VERBOSE}
                         '''
                     }
                 }
@@ -76,7 +78,8 @@ pipeline {
                         sh '''
                             ansible-playbook site.yml \
                             --tags db_create \
-                            --vault-password-file "$VAULT_PASS_FILE"
+                            --vault-password-file "$VAULT_PASS_FILE" \
+                            ${params.ANSIBLE_VERBOSE}
                         '''
                     }
                 }
@@ -92,7 +95,8 @@ pipeline {
                         sh '''
                             ansible-playbook site.yml \
                             --tags db_backup \
-                            --vault-password-file "$VAULT_PASS_FILE"
+                            --vault-password-file "$VAULT_PASS_FILE" \
+                            ${params.ANSIBLE_VERBOSE}
                         '''
                     }
                 }
@@ -109,8 +113,9 @@ pipeline {
                         sh '''
                         ansible-playbook site.yml \
                             --tags app_k8s \
-                            --vault-password-file "$VAULT_PASS_FILE"
-                            --extra-vars "app_secrets_file=$APP_SECRETS_FILE"
+                            --vault-password-file "$VAULT_PASS_FILE" \
+                            --extra-vars "app_secrets_file=$APP_SECRETS_FILE" \
+                            ${params.ANSIBLE_VERBOSE}
                         '''
                     }
                 }
