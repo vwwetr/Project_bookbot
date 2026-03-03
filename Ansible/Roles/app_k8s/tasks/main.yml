@@ -52,6 +52,29 @@
       | kubectl apply -f -
   changed_when: false
 
+- name: Check app_secrets_file exists on controller
+  ansible.builtin.stat:
+    path: "{{ app_secrets_file }}"
+  register: env_stat
+  delegate_to: localhost
+  run_once: true
+  changed_when: false
+
+- name: Fail if app_secrets_file missing
+  ansible.builtin.fail:
+    msg: "app_secrets_file not found or not readable: {{ app_secrets_file }}"
+  when: not env_stat.stat.exists
+
+- name: kubectl current context
+  ansible.builtin.command: "kubectl config current-context"
+  register: kctx
+  changed_when: false
+
+- name: kubectl can reach API
+  ansible.builtin.command: "kubectl --request-timeout=5s version --short"
+  register: kver
+  changed_when: false
+
 - name: Ensure secret from env file
   ansible.builtin.shell: |
     set -o pipefail
