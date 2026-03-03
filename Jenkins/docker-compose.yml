@@ -30,40 +30,8 @@ services:
       - jenkins_network
     restart: unless-stopped
   
-  sonarqube:
-    container_name: sonar
-    image: sonarqube:9.9.1-community
-    restart: unless-stopped
-    networks:
-      jenkins_network:
-        ipv4_address: 172.18.0.5
-    ports:
-      - 9000:9000
-    volumes:
-      - "sonarqube_extensions:/opt/sonarqube/extensions"
-      - "sonarqube_data:/opt/sonarqube/data"
-      - "sonarqube_logs:/opt/sonarqube/logs"
-
-  maildev:
-    container_name: maildev
-    image: maildev/maildev:2.1.0
-    hostname: "maildev.example.ru"
-    restart: unless-stopped
-    networks:
-      jenkins_network:
-        ipv4_address: 172.18.0.4
-    ports:
-      - 1080:1080 # maildev - web application 
-      - 1025:1025 # jenkins will use 'mail:1025' to send emails
-
 volumes:
   jenkins_data:
-    driver: local
-  sonarqube_extensions:
-    driver: local
-  sonarqube_data:
-    driver: local
-  sonarqube_logs:
     driver: local
 
 networks:

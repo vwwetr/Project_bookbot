@@ -1,5 +1,5 @@
 
-## 📂 Проектная структура
+## Локальный граф проекта
 
 ```sh
 learningbot/
@@ -20,14 +20,14 @@ learningbot/
     └── test/java/com/learningbot/LearningBotTests.java
 ```
 
-## 🧩 Среда и инструменты
+## Среда и инструменты
 
 * **Java:** 25 (Temurin / OpenJDK ARM64)
 * **Spring Boot:** 3.5.7 (совместима с JDK 25)
 * **Maven:** ≥3.9
 * **PostgreSQL:** 16 
 
-## Building:
+## Билд (maven)):
 
 ```sh
 brew install maven 
@@ -35,7 +35,7 @@ mvn clean package -DskipTests
 java -jar target/learningbot-1.0.0.jar
 ```
 
-## Переменные окружения:
+## Переменные окружения для секретов:
 ```bash
 nano .env.local 
 

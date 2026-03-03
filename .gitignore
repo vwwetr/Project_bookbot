@@ -6,6 +6,7 @@
 Someshit/
 Ansible/group_vars/all/vault.yml
 Ansible/logs
+Ansible/.vault
 .gitmodules
 .dockerignore
 /Security
