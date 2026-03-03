@@ -61,7 +61,7 @@
       --dry-run=client -o yaml | kubectl apply -f -
   args:
     chdir: "{{ learningbot_app_dir }}"
-  no_log: true
+  no_log: false
   changed_when: false
 
 - name: Load image to minikube
