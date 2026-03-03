@@ -39,8 +39,8 @@ Vagrant.configure("2") do |config|
         # Centos:
         sudo dnf -y install dnf-plugins-core
         sudo dnf config-manager \
-           --setopt=baseos.baseurl=https://mirror.stream.centos.org/10-stream/BaseOS/x86_64/os/ \
-           --save
+          --setopt=baseos.baseurl=https://mirror.stream.centos.org/10-stream/BaseOS/x86_64/os/ \
+          --save
         sudo dnf config-manager --setopt=baseos.metalink= --save
         sudo dnf clean all
         sudo rm -rf /var/cache/dnf/*

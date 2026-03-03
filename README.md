@@ -1,29 +1,31 @@
-# Project_bookbot
-Telegram learning bot on JavaSpringBoot.
-Здесь описан quick quide проекта. Остальную документацию смотри в разделе `./Documentation`
+# О проекте
+Инфраструктурная реализация микросервисного приложения (Telegram learning bot) на JavaSpringBoot.
 
-## Note for me:
-После билда всего проекта:
-    - Расписать здесь структуру проекта и навигацию по ней
-    - Привести в порядок документацию во всех директориях
-    - Обновить схему
-## Stack:
-- Vagrant (version) + Virtualbox (version) - Виртуализация нод кластера;
-    - vagrant plugin install vagrant-vbguest (на хосте) для синхронизации времени хоста и времени нод;
-    - https://formulae.brew.sh/cask/vagrant
-    - https://formulae.brew.sh/cask/virtualbox
-- 
+## Стэк:
+- Application: Java Spring Boot;
+- DB: PostgreSQL (psql, pg_dump / pg_restore);
+- Локальные тесты: Bare metal + Vagrant + Virtual Box;
+- Networks: Nginx (внешний бастион-хост) + Nginx (внутренний прокси для сервисов);
+- IaC: Ansible, Kubernetes;
+- CI/CD: Jenkins, Maven, Docker, GitHub;
+- Logging: FluentBit, OpenSearch;
+- Monitoring: Zabbix, Prometheus, Grafana;
 
-## Documentation:
-- Обязательно перед запуском!: открой и выполни `/Documentation/Get_started.md`; (Done)
-- Логическая схема проекта: `/Documentation/project_scheme.png` (или `project_scheme.drawio`); (Pending)
-- Для работы с ChatGPT используй готовые шаблоны PROMPT-запросов: `/Documentation/PROMPTS (GPT)`; (Pending)
-- Cluster Ops: `/Documentation/Cluster_Ops.md`; (Pending)
-- Project git flow: `/Documentation/Project_gitflow.md`; (Done)
-- Application: `/Documentation/Application_readme.md`; (Pending)
-- Database: `/Documentation/Database_readme.md`; (Pending)
-- Ansible: `/Documentation/Ansible_readme.md`; (Pending)
-- Linux: `/Documentation/Linux_readme.md`; (Pending)
-- Nginx: `/Documentation/Nginx_readme.md`; (Pending)
-- Net: `/Documentation/Net_readme.md`; (Pending)
-- K8s: https://habr.com/ru/companies/beeline_cloud/articles/864222/ (+ minikube, пока что, описан  в доке Application)d
+## Работа с проектом
+1) Выполни Bootstrap с настройкой bare metal, для дальнейшего деплоя архитектуры: `/Documentation/Bootstrap_user_guide.md`.
+2) Установи и настрой Jenkins: `/Documentation/Jenkins_readme.md`;
+- После выполнения инструкций выше можно взаимодействовать с приложением и его архитектурой.
+- Документацию по работе с сервисами - смотри в разделе "Документация".
+
+## Документация:
+- Логическая схема проекта: `/Documentation/project_scheme.png` (или `project_scheme.drawio`);
+- Для работы с ChatGPT используй готовые шаблоны PROMPT-запросов: `/Documentation/PROMPTS (GPT)`;
+- Project git flow: `/Documentation/Project_gitflow.md`;
+- Cluster Ops: `/Documentation/Cluster_Ops.md`;
+- Application: `/Documentation/Application_readme.md`;
+- Database: `/Documentation/Database_readme.md`;
+- Ansible: `/Documentation/Ansible_readme.md`;
+- Jenkins: `/Documentation/Jenkins_readme.md`;
+    - Список плагинов для работы с Jenkins: `/Documentation/Jenkins_plugins.md`;
+    - Настройка host-agent: `/Documentation/Jenkins_host-agent_settings.png`;
+- Скрипт для сброса состояния виртуальных машин: `vagrant_destroy.sh`;

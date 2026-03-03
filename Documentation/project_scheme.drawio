@@ -1,14 +1,11 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/28.2.8 Chrome/140.0.7339.240 Electron/38.4.0 Safari/537.36" version="28.2.8" pages="2">
   <diagram name="Cluster scheme" id="ZpGOQEVKVNA0ghb57mVW">
-    <mxGraphModel dx="2201" dy="681" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="3047" dy="1191" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="okx3tZtz_lyJA5TFhYH2-25" value="Cluster Ops" style="shape=callout;whiteSpace=wrap;html=1;perimeter=calloutPerimeter;strokeColor=#FF3333;" parent="1" vertex="1">
           <mxGeometry x="-230" y="835" width="120" height="80" as="geometry" />
-        </mxCell>
-        <mxCell id="8yR3JTczu2t0ciV8GyWY-111" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="-765" y="870" width="235" height="900" as="geometry" />
         </mxCell>
         <mxCell id="8yR3JTczu2t0ciV8GyWY-65" value="Telegram client" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#00CC00;" parent="1" vertex="1">
           <mxGeometry x="-100" y="1112" width="120" height="46" as="geometry" />
@@ -39,15 +36,6 @@
         </mxCell>
         <mxCell id="8yR3JTczu2t0ciV8GyWY-6" value="sds" style="whiteSpace=wrap;html=1;aspect=fixed;shadow=1;" parent="1" vertex="1">
           <mxGeometry x="645" y="728" width="300" height="300" as="geometry" />
-        </mxCell>
-        <mxCell id="pc7G6TNYB0zBTRuRzCBt-4" value="" style="ellipse;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="-725" y="1072" width="120" height="80" as="geometry" />
-        </mxCell>
-        <mxCell id="-bcRZX9ommnIf4YHK3dN-121" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="-110" y="505" width="120" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="-bcRZX9ommnIf4YHK3dN-120" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="-345" y="505" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="-bcRZX9ommnIf4YHK3dN-113" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#FFFFFF,#CCCCCC);shadow=1;" parent="1" vertex="1">
           <mxGeometry x="167.5" y="580" width="402.5" height="460" as="geometry" />
@@ -132,12 +120,6 @@
         <mxCell id="-bcRZX9ommnIf4YHK3dN-90" value="Zabbix Agent" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#FF3333;" parent="1" vertex="1">
           <mxGeometry x="390" y="1262" width="121.32" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="-bcRZX9ommnIf4YHK3dN-96" value="Deploy&lt;div&gt;Jenkins + ansible on jenkins agent&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="-725" y="1270" width="120" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="-bcRZX9ommnIf4YHK3dN-97" value="1) Nginx&lt;div&gt;2) Opensearch&lt;/div&gt;&lt;div&gt;3) Opensearch DashBoard&lt;/div&gt;&lt;div&gt;4) k8s manifest&lt;/div&gt;&lt;div&gt;5) pronetheus + graphana&lt;br&gt;6) zabbix agent&lt;/div&gt;&lt;div&gt;7) FluentD&lt;/div&gt;&lt;div&gt;8) Deploy &amp;amp; configure db&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
-          <mxGeometry x="-695" y="1470" width="60" height="30" as="geometry" />
-        </mxCell>
         <mxCell id="-bcRZX9ommnIf4YHK3dN-101" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="665" y="788" width="220" height="200" as="geometry" />
         </mxCell>
@@ -183,46 +165,8 @@
         <mxCell id="-bcRZX9ommnIf4YHK3dN-114" value="MiniKube&lt;div&gt;docker localhost&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="160" y="610.97" width="120" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="-bcRZX9ommnIf4YHK3dN-117" value="CI:&amp;nbsp;&lt;br&gt;local maven build" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
-          <mxGeometry x="-360" y="500" width="150" height="70" as="geometry" />
-        </mxCell>
-        <mxCell id="-bcRZX9ommnIf4YHK3dN-118" value="docker registry&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
-          <mxGeometry x="-80" y="520" width="60" height="30" as="geometry" />
-        </mxCell>
-        <mxCell id="-bcRZX9ommnIf4YHK3dN-123" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="-bcRZX9ommnIf4YHK3dN-117" target="-bcRZX9ommnIf4YHK3dN-121" edge="1">
-          <mxGeometry width="50" height="50" relative="1" as="geometry">
-            <mxPoint x="-10" y="965" as="sourcePoint" />
-            <mxPoint x="40" y="915" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="-bcRZX9ommnIf4YHK3dN-125" value="Local manual push to" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
-          <mxGeometry x="-200" y="490" width="60" height="30" as="geometry" />
-        </mxCell>
-        <mxCell id="-bcRZX9ommnIf4YHK3dN-126" value="" style="endArrow=classic;html=1;rounded=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=0;exitY=0;exitDx=0;exitDy=0;" parent="1" source="-bcRZX9ommnIf4YHK3dN-113" target="-bcRZX9ommnIf4YHK3dN-121" edge="1">
-          <mxGeometry width="50" height="50" relative="1" as="geometry">
-            <mxPoint x="-40" y="665" as="sourcePoint" />
-            <mxPoint x="80" y="530" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="-bcRZX9ommnIf4YHK3dN-127" value="* ansible env values DEPENDS ON STAND_VALUES. Use jinja2" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
-          <mxGeometry x="-690" y="1700" width="60" height="30" as="geometry" />
-        </mxCell>
-        <UserObject label="https://developer.hashicorp.com/vault" link="https://developer.hashicorp.com/vault" id="pc7G6TNYB0zBTRuRzCBt-1">
-          <mxCell style="text;whiteSpace=wrap;" parent="1" vertex="1">
-            <mxGeometry x="-750" y="1630" width="230" height="40" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <mxCell id="pc7G6TNYB0zBTRuRzCBt-2" value="Секретики&lt;br&gt;Кубер, женкинс, приложение" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" parent="1" vertex="1">
-          <mxGeometry x="-695" y="1102" width="60" height="30" as="geometry" />
-        </mxCell>
         <mxCell id="kiYP-ZSzkKLJ5z3ouGvI-1" value="pg_dump" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#00CC00;" parent="1" vertex="1">
           <mxGeometry x="827.5" y="1172" width="110" height="30" as="geometry" />
-        </mxCell>
-        <mxCell id="kiYP-ZSzkKLJ5z3ouGvI-2" value="pg_restore" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="-670" y="895" width="110" height="30" as="geometry" />
-        </mxCell>
-        <mxCell id="TL_Djx1T3vG-fspi3fid-1" value="JavaKeyStore (TLS)" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="-725" y="1187" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="8yR3JTczu2t0ciV8GyWY-7" value="IP:192.168.56.211&lt;br&gt;Nginx tech (app reverse proxy)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="645" y="730" width="190" height="40" as="geometry" />
@@ -297,12 +241,6 @@
         <mxCell id="8yR3JTczu2t0ciV8GyWY-60" value="Vagrant+ VB Node" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="1280" y="658.47" width="80" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="8yR3JTczu2t0ciV8GyWY-62" value="TelegramBotsApi" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="-670" y="981.5" width="90" height="33" as="geometry" />
-        </mxCell>
-        <mxCell id="8yR3JTczu2t0ciV8GyWY-63" value="Telegram&lt;br&gt;LongPolling Bot" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="-750" y="933" width="90" height="40" as="geometry" />
-        </mxCell>
         <mxCell id="8yR3JTczu2t0ciV8GyWY-67" value="Web-browser client" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#FF3333;" parent="1" vertex="1">
           <mxGeometry x="-100" y="1003.5" width="125" height="36.5" as="geometry" />
         </mxCell>
@@ -357,7 +295,7 @@
         <mxCell id="okx3tZtz_lyJA5TFhYH2-114" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.25;entryDx=0;entryDy=0;strokeColor=#0000FF;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;resizable=1;endArrow=classic;" parent="1" source="okx3tZtz_lyJA5TFhYH2-22" target="-bcRZX9ommnIf4YHK3dN-73" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="XQDrzoOqWivbHGkoVMYF-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;strokeColor=#0000FF;" edge="1" parent="1" source="okx3tZtz_lyJA5TFhYH2-22" target="-bcRZX9ommnIf4YHK3dN-61">
+        <mxCell id="XQDrzoOqWivbHGkoVMYF-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;strokeColor=#0000FF;" parent="1" source="okx3tZtz_lyJA5TFhYH2-22" target="-bcRZX9ommnIf4YHK3dN-61" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="okx3tZtz_lyJA5TFhYH2-22" value="" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#FF3333;" parent="1" vertex="1">
@@ -510,9 +448,6 @@
         <mxCell id="okx3tZtz_lyJA5TFhYH2-82" value="Тех. трафик" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;strokeColor=#FF0000;" parent="1" vertex="1">
           <mxGeometry x="340" y="1440" width="80" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="okx3tZtz_lyJA5TFhYH2-111" value="&lt;i&gt;&lt;u&gt;Эта нода позже будет проксей для Jenkins/Docker_registry/Hashi_vault&lt;/u&gt;&lt;/i&gt;" style="text;strokeColor=none;fillColor=none;html=1;fontSize=11;fontStyle=1;verticalAlign=middle;align=center;fontFamily=Helvetica;fontColor=default;labelBackgroundColor=default;resizable=1;" parent="1" vertex="1">
-          <mxGeometry x="745" y="693.47" width="100" height="40" as="geometry" />
-        </mxCell>
         <mxCell id="okx3tZtz_lyJA5TFhYH2-91" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.4;exitDx=0;exitDy=0;entryX=0.005;entryY=0.174;entryDx=0;entryDy=0;strokeColor=#0000FF;entryPerimeter=0;jumpStyle=arc;jumpSize=15;exitPerimeter=0;" parent="1" source="-bcRZX9ommnIf4YHK3dN-61" edge="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="415.46" y="842.3399999999999" as="sourcePoint" />
@@ -534,7 +469,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="XQDrzoOqWivbHGkoVMYF-2" value="192.168.56.1:443/TCP" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="XQDrzoOqWivbHGkoVMYF-2" value="192.168.56.1:443/TCP" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="80" y="1280" width="190" height="40" as="geometry" />
         </mxCell>
       </root>

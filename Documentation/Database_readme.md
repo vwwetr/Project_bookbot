@@ -119,7 +119,7 @@ WHERE lower(trim(unaccent(title))) = lower(trim(unaccent(:title_in)));
 ls -1t /var/backups/postgresql/app_bot/*.dump.gz | head -1 # На ноде с дампом
 
 ```
-## Database debug
+## Команды для работы с БД
 ```sh
 sudo less /var/spool/cron/db_backup # Пользовательский крон:
 sudo less /opt/postgresql/app_bot/sql/pg_backup.sh # Скрипт дампа (на ноде Logging)

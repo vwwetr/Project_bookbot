@@ -1,0 +1,93 @@
+---
+- name: Must run locally
+  ansible.builtin.assert:
+    that:
+      - ansible_connection == "local" or inventory_hostname in ["localhost", "127.0.0.1"]
+    fail_msg: "Эта роль должна запускаться локально на машине с Minikube и Docker Desktop."
+  delegate_to: localhost
+
+- name: Build app (Maven)
+  ansible.builtin.command: "mvn -DskipTests package"
+  args:
+    chdir: "{{ learningbot_app_dir }}"
+
+- name: Install minikube (Homebrew)
+  ansible.builtin.shell: |
+    brew list minikube >/dev/null 2>&1 || brew install minikube
+  changed_when: false
+
+- name: Install kubectl (Homebrew)
+  ansible.builtin.shell: |
+    brew list kubectl >/dev/null 2>&1 || brew install kubectl
+  changed_when: false
+
+- name: Start minikube
+  ansible.builtin.command: "minikube start --driver=docker"
+  changed_when: false
+
+- name: Wait for Kubernetes API readiness
+  ansible.builtin.command: "kubectl --request-timeout=5s get --raw='/readyz?verbose'"
+  register: api_ready
+  retries: 20
+  delay: 3
+  until: api_ready.rc == 0
+  changed_when: false
+
+- name: Build image (no cache)
+  ansible.builtin.command: "docker build --no-cache -t {{ learningbot_image }} ."
+  args:
+    chdir: "{{ learningbot_app_dir }}"
+
+- name: Ensure namespace
+  ansible.builtin.shell: |
+    set -o pipefail
+    kubectl create namespace {{ learningbot_namespace }} --dry-run=client -o yaml \
+      | kubectl apply -f -
+  changed_when: false
+
+- name: Create serviceaccount
+  ansible.builtin.shell: |
+    set -o pipefail
+    kubectl -n {{ learningbot_namespace }} create serviceaccount {{ learningbot_serviceaccount }} --dry-run=client -o yaml \
+      | kubectl apply -f -
+  changed_when: false
+
+- name: Ensure secret from env file
+  ansible.builtin.shell: |
+    set -o pipefail
+    kubectl create secret generic {{ learningbot_secret_name }} \
+      --from-env-file="{{ env_local_file }}" \
+      -n {{ learningbot_namespace }} \
+      --dry-run=client -o yaml | kubectl apply -f -
+  args:
+    chdir: "{{ learningbot_app_dir }}"
+  no_log: true
+  changed_when: false
+
+- name: Load image to minikube
+  ansible.builtin.command: "minikube image load --overwrite=true {{ learningbot_image }}"
+  changed_when: false
+
+- name: Apply deployment
+  ansible.builtin.command: "kubectl apply -f ./k8s/learningbot-deploy.yaml"
+  args:
+    chdir: "{{ learningbot_app_dir }}"
+  changed_when: false
+
+- name: Apply service
+  ansible.builtin.command: "kubectl apply -f ./k8s/learningbot-service.yaml"
+  args:
+    chdir: "{{ learningbot_app_dir }}"
+  changed_when: false
+
+- name: Show namespace
+  ansible.builtin.command: "kubectl get ns {{ learningbot_namespace }}"
+  changed_when: false
+
+- name: Show pods
+  ansible.builtin.command: "kubectl -n {{ learningbot_namespace }} get pods"
+  changed_when: false
+
+- name: Show serviceaccount
+  ansible.builtin.command: "kubectl -n {{ learningbot_namespace }} get sa {{ learningbot_serviceaccount }}"
+  changed_when: false
